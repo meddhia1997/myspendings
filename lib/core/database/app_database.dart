@@ -7,18 +7,20 @@ import 'package:path_provider/path_provider.dart';
 
 import 'daos/accounts_dao.dart';
 import 'daos/categories_dao.dart';
+import 'daos/fixed_expenses_dao.dart';
 import 'daos/savings_goals_dao.dart';
 import 'daos/transactions_dao.dart';
 import 'tables/accounts.dart';
 import 'tables/categories.dart';
+import 'tables/fixed_expenses.dart';
 import 'tables/savings_goals.dart';
 import 'tables/transactions.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Accounts, Categories, Transactions, SavingsGoals],
-  daos: [AccountsDao, CategoriesDao, TransactionsDao, SavingsGoalsDao],
+  tables: [Accounts, Categories, Transactions, SavingsGoals, FixedExpenses],
+  daos: [AccountsDao, CategoriesDao, TransactionsDao, SavingsGoalsDao, FixedExpensesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -26,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +45,9 @@ class AppDatabase extends _$AppDatabase {
         // no user-facing data is lost besides the old goal, which the user re-enters.
         await m.deleteTable(savingsGoals.actualTableName);
         await m.createTable(savingsGoals);
+      }
+      if (from < 4) {
+        await m.createTable(fixedExpenses);
       }
     },
   );

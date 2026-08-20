@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/app_database.dart' show AppDatabase, Account;
 import '../../data/repositories/account_repository.dart';
 import '../../data/repositories/category_repository.dart';
+import '../../data/repositories/fixed_expense_repository.dart';
 import '../../data/repositories/savings_goal_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 
@@ -30,6 +31,15 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
 final savingsGoalRepositoryProvider = Provider<SavingsGoalRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return SavingsGoalRepository(db.savingsGoalsDao);
+});
+
+final fixedExpenseRepositoryProvider = Provider<FixedExpenseRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return FixedExpenseRepository(db.fixedExpensesDao, ref.watch(transactionRepositoryProvider));
+});
+
+final fixedExpensesProvider = StreamProvider.autoDispose((ref) {
+  return ref.watch(fixedExpenseRepositoryProvider).watchAll();
 });
 
 // Reactive data streams consumed directly by the UI.

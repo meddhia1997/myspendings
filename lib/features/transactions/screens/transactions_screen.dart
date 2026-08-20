@@ -7,6 +7,7 @@ import '../../../shared/providers/savings_providers.dart';
 import '../../../shared/responsive/breakpoints.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
+import '../widgets/fixed_expenses_row.dart';
 import '../widgets/quick_expense_sheet.dart';
 import '../widgets/savings_goal_sheet.dart';
 
@@ -32,6 +33,10 @@ class TransactionsScreen extends ConsumerWidget {
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: _DailyBudgetCard(),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: FixedExpensesRow(),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
