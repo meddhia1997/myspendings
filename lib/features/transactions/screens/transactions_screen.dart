@@ -72,7 +72,7 @@ class TransactionsScreen extends ConsumerWidget {
                     .fold<int>(0, (sum, t) => sum + t.transaction.amountMinor);
 
                 return ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
                   children: [
                     Row(
                       children: [

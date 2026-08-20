@@ -31,7 +31,6 @@ class _HomeShellState extends State<HomeShell> {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      extendBody: true,
       body: IndexedStack(index: _index, children: _screens),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),

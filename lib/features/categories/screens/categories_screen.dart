@@ -20,7 +20,7 @@ class CategoriesScreen extends ConsumerWidget {
           final expense = categories.where((c) => c.type == 'expense').toList();
           final income = categories.where((c) => c.type == 'income').toList();
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
             children: [
               Text('Expense', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),

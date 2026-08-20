@@ -21,7 +21,7 @@ class AccountsScreen extends ConsumerWidget {
             return _EmptyState(scheme: Theme.of(context).colorScheme);
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
