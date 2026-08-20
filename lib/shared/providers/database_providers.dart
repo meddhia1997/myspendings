@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/database/app_database.dart';
+import '../../core/database/app_database.dart' show AppDatabase, Account;
 import '../../data/repositories/account_repository.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
@@ -52,4 +52,16 @@ final selectedMonthProvider = StateProvider<DateTime>((ref) {
 final monthlyTransactionsProvider = StreamProvider.autoDispose((ref) {
   final month = ref.watch(selectedMonthProvider);
   return ref.watch(transactionRepositoryProvider).watchForMonth(month);
+});
+
+/// Sum of every account's current balance — shown as a persistent reminder on every screen.
+final totalBalanceProvider = StreamProvider.autoDispose((ref) {
+  return ref.watch(transactionRepositoryProvider).watchTotalBalance();
+});
+
+/// The account quick-add expenses are booked against when the user doesn't pick one explicitly.
+final defaultAccountProvider = Provider.autoDispose<Account?>((ref) {
+  final accounts = ref.watch(accountsProvider).valueOrNull;
+  if (accounts == null || accounts.isEmpty) return null;
+  return accounts.first;
 });

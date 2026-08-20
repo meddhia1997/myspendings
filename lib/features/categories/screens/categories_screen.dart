@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 import '../../../shared/providers/database_providers.dart';
 import '../../../shared/widgets/icon_catalog.dart';
+import '../../../shared/widgets/total_balance_banner.dart';
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
@@ -13,22 +14,20 @@ class CategoriesScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(title: const Text('Categories'), bottom: const TotalBalanceBanner()),
       body: categoriesAsync.when(
         data: (categories) {
           final expense = categories.where((c) => c.type == 'expense').toList();
           final income = categories.where((c) => c.type == 'income').toList();
           return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Expense', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
+              Text('Expense', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
               for (final category in expense) _CategoryTile(category: category),
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Income', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
+              const SizedBox(height: 16),
+              Text('Income', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
               for (final category in income) _CategoryTile(category: category),
             ],
           );
@@ -136,13 +135,20 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Color(category.colorValue).withValues(alpha: 0.15),
-        foregroundColor: Color(category.colorValue),
-        child: Icon(iconForKey(category.iconKey)),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: Color(category.colorValue).withValues(alpha: 0.15),
+          foregroundColor: Color(category.colorValue),
+          child: Icon(iconForKey(category.iconKey)),
+        ),
+        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w600)),
       ),
-      title: Text(category.name),
     );
   }
 }

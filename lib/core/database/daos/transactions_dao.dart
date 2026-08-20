@@ -66,6 +66,19 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     return query.watchSingle().map((row) => row.read<int>('net'));
   }
 
+  /// Sum of every account's current balance (initial balance + its net transactions).
+  Stream<int> watchTotalBalance() {
+    final query = customSelect(
+      'SELECT '
+      '(SELECT COALESCE(SUM(initial_balance_minor), 0) FROM accounts WHERE is_archived = 0) + '
+      '(SELECT COALESCE(SUM(CASE WHEN type = ?1 THEN amount_minor ELSE -amount_minor END), 0) FROM transactions) '
+      'AS total',
+      variables: [Variable.withString('income')],
+      readsFrom: {accounts, transactions},
+    );
+    return query.watchSingle().map((row) => row.read<int>('total'));
+  }
+
   Future<int> insertTransaction(TransactionsCompanion entry) => into(transactions).insert(entry);
 
   Future<bool> updateTransaction(TransactionsCompanion entry) =>

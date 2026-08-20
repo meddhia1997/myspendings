@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/database_providers.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
+import '../../../shared/widgets/total_balance_banner.dart';
 
 class AccountsScreen extends ConsumerWidget {
   const AccountsScreen({super.key});
@@ -13,36 +14,44 @@ class AccountsScreen extends ConsumerWidget {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Accounts')),
+      appBar: AppBar(title: const Text('Accounts'), bottom: const TotalBalanceBanner()),
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
             return const Center(child: Text('No accounts yet. Add one to get started.'));
           }
           return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
               final balanceAsync = ref.watch(accountBalanceProvider(account.id));
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Color(account.colorValue).withValues(alpha: 0.15),
-                  foregroundColor: Color(account.colorValue),
-                  child: Icon(iconForKey(account.iconKey)),
-                ),
-                title: Text(account.name),
-                subtitle: Text(account.type),
-                trailing: balanceAsync.when(
-                  data: (balance) => Text(
-                    formatMoney(balance, account.currencyCode),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  leading: CircleAvatar(
+                    backgroundColor: Color(account.colorValue).withValues(alpha: 0.15),
+                    foregroundColor: Color(account.colorValue),
+                    child: Icon(iconForKey(account.iconKey)),
                   ),
-                  loading: () => const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                  title: Text(account.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(account.type),
+                  trailing: balanceAsync.when(
+                    data: (balance) => Text(
+                      formatMoney(balance, account.currencyCode),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    loading: () => const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (_, _) => const Icon(Icons.error_outline),
                   ),
-                  error: (_, _) => const Icon(Icons.error_outline),
                 ),
               );
             },
