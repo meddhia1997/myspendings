@@ -230,7 +230,26 @@ class _DailyBudgetCard extends ConsumerWidget {
         }
 
         final over = budget.isOverBudget;
-        final color = over ? const Color(0xFFE1544C) : scheme.primary;
+        final pastDeadline = budget.isPastDeadline;
+        final warn = over || pastDeadline;
+        final color = warn ? const Color(0xFFE1544C) : scheme.primary;
+
+        String title;
+        String subtitle;
+        IconData icon;
+        if (pastDeadline) {
+          title = 'Goal date has passed';
+          subtitle = 'Set a new date to keep tracking';
+          icon = Icons.event_busy_rounded;
+        } else if (over) {
+          title = 'No room left to spend';
+          subtitle = 'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal';
+          icon = Icons.warning_rounded;
+        } else {
+          title = 'Daily budget · ${_shortDate(budget.targetDate!)}';
+          subtitle = '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left';
+          icon = Icons.bolt_rounded;
+        }
 
         return InkWell(
           onTap: () => showSavingsGoalSheet(context),
@@ -247,7 +266,7 @@ class _DailyBudgetCard extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
-                  child: Icon(over ? Icons.warning_rounded : Icons.bolt_rounded, color: color, size: 20),
+                  child: Icon(icon, color: color, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -255,13 +274,12 @@ class _DailyBudgetCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        over ? 'No room left to spend' : 'Daily budget',
+                        title,
                         style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        over
-                            ? 'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal'
-                            : '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left',
+                        subtitle,
                         style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16),
                       ),
                     ],
@@ -274,6 +292,14 @@ class _DailyBudgetCard extends ConsumerWidget {
         );
       },
     );
+  }
+
+  String _shortDate(DateTime date) {
+    const names = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${names[date.month - 1]} ${date.day}';
   }
 }
 

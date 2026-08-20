@@ -1589,15 +1589,15 @@ class $SavingsGoalsTable extends SavingsGoals
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _monthKeyMeta = const VerificationMeta(
-    'monthKey',
+  static const VerificationMeta _targetDateMeta = const VerificationMeta(
+    'targetDate',
   );
   @override
-  late final GeneratedColumn<String> monthKey = GeneratedColumn<String>(
-    'month_key',
+  late final GeneratedColumn<DateTime> targetDate = GeneratedColumn<DateTime>(
+    'target_date',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _targetAmountMinorMeta = const VerificationMeta(
@@ -1626,7 +1626,7 @@ class $SavingsGoalsTable extends SavingsGoals
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    monthKey,
+    targetDate,
     targetAmountMinor,
     updatedAt,
   ];
@@ -1645,13 +1645,13 @@ class $SavingsGoalsTable extends SavingsGoals
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('month_key')) {
+    if (data.containsKey('target_date')) {
       context.handle(
-        _monthKeyMeta,
-        monthKey.isAcceptableOrUnknown(data['month_key']!, _monthKeyMeta),
+        _targetDateMeta,
+        targetDate.isAcceptableOrUnknown(data['target_date']!, _targetDateMeta),
       );
     } else if (isInserting) {
-      context.missing(_monthKeyMeta);
+      context.missing(_targetDateMeta);
     }
     if (data.containsKey('target_amount_minor')) {
       context.handle(
@@ -1676,10 +1676,6 @@ class $SavingsGoalsTable extends SavingsGoals
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {monthKey},
-  ];
-  @override
   SavingsGoal map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return SavingsGoal(
@@ -1687,9 +1683,9 @@ class $SavingsGoalsTable extends SavingsGoals
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      monthKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}month_key'],
+      targetDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}target_date'],
       )!,
       targetAmountMinor: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -1710,12 +1706,12 @@ class $SavingsGoalsTable extends SavingsGoals
 
 class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   final int id;
-  final String monthKey;
+  final DateTime targetDate;
   final int targetAmountMinor;
   final DateTime updatedAt;
   const SavingsGoal({
     required this.id,
-    required this.monthKey,
+    required this.targetDate,
     required this.targetAmountMinor,
     required this.updatedAt,
   });
@@ -1723,7 +1719,7 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['month_key'] = Variable<String>(monthKey);
+    map['target_date'] = Variable<DateTime>(targetDate);
     map['target_amount_minor'] = Variable<int>(targetAmountMinor);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1732,7 +1728,7 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   SavingsGoalsCompanion toCompanion(bool nullToAbsent) {
     return SavingsGoalsCompanion(
       id: Value(id),
-      monthKey: Value(monthKey),
+      targetDate: Value(targetDate),
       targetAmountMinor: Value(targetAmountMinor),
       updatedAt: Value(updatedAt),
     );
@@ -1745,7 +1741,7 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SavingsGoal(
       id: serializer.fromJson<int>(json['id']),
-      monthKey: serializer.fromJson<String>(json['monthKey']),
+      targetDate: serializer.fromJson<DateTime>(json['targetDate']),
       targetAmountMinor: serializer.fromJson<int>(json['targetAmountMinor']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1755,7 +1751,7 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'monthKey': serializer.toJson<String>(monthKey),
+      'targetDate': serializer.toJson<DateTime>(targetDate),
       'targetAmountMinor': serializer.toJson<int>(targetAmountMinor),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1763,19 +1759,21 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
 
   SavingsGoal copyWith({
     int? id,
-    String? monthKey,
+    DateTime? targetDate,
     int? targetAmountMinor,
     DateTime? updatedAt,
   }) => SavingsGoal(
     id: id ?? this.id,
-    monthKey: monthKey ?? this.monthKey,
+    targetDate: targetDate ?? this.targetDate,
     targetAmountMinor: targetAmountMinor ?? this.targetAmountMinor,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   SavingsGoal copyWithCompanion(SavingsGoalsCompanion data) {
     return SavingsGoal(
       id: data.id.present ? data.id.value : this.id,
-      monthKey: data.monthKey.present ? data.monthKey.value : this.monthKey,
+      targetDate: data.targetDate.present
+          ? data.targetDate.value
+          : this.targetDate,
       targetAmountMinor: data.targetAmountMinor.present
           ? data.targetAmountMinor.value
           : this.targetAmountMinor,
@@ -1787,7 +1785,7 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   String toString() {
     return (StringBuffer('SavingsGoal(')
           ..write('id: $id, ')
-          ..write('monthKey: $monthKey, ')
+          ..write('targetDate: $targetDate, ')
           ..write('targetAmountMinor: $targetAmountMinor, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1795,44 +1793,44 @@ class SavingsGoal extends DataClass implements Insertable<SavingsGoal> {
   }
 
   @override
-  int get hashCode => Object.hash(id, monthKey, targetAmountMinor, updatedAt);
+  int get hashCode => Object.hash(id, targetDate, targetAmountMinor, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SavingsGoal &&
           other.id == this.id &&
-          other.monthKey == this.monthKey &&
+          other.targetDate == this.targetDate &&
           other.targetAmountMinor == this.targetAmountMinor &&
           other.updatedAt == this.updatedAt);
 }
 
 class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
   final Value<int> id;
-  final Value<String> monthKey;
+  final Value<DateTime> targetDate;
   final Value<int> targetAmountMinor;
   final Value<DateTime> updatedAt;
   const SavingsGoalsCompanion({
     this.id = const Value.absent(),
-    this.monthKey = const Value.absent(),
+    this.targetDate = const Value.absent(),
     this.targetAmountMinor = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   SavingsGoalsCompanion.insert({
     this.id = const Value.absent(),
-    required String monthKey,
+    required DateTime targetDate,
     required int targetAmountMinor,
     this.updatedAt = const Value.absent(),
-  }) : monthKey = Value(monthKey),
+  }) : targetDate = Value(targetDate),
        targetAmountMinor = Value(targetAmountMinor);
   static Insertable<SavingsGoal> custom({
     Expression<int>? id,
-    Expression<String>? monthKey,
+    Expression<DateTime>? targetDate,
     Expression<int>? targetAmountMinor,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (monthKey != null) 'month_key': monthKey,
+      if (targetDate != null) 'target_date': targetDate,
       if (targetAmountMinor != null) 'target_amount_minor': targetAmountMinor,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1840,13 +1838,13 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
 
   SavingsGoalsCompanion copyWith({
     Value<int>? id,
-    Value<String>? monthKey,
+    Value<DateTime>? targetDate,
     Value<int>? targetAmountMinor,
     Value<DateTime>? updatedAt,
   }) {
     return SavingsGoalsCompanion(
       id: id ?? this.id,
-      monthKey: monthKey ?? this.monthKey,
+      targetDate: targetDate ?? this.targetDate,
       targetAmountMinor: targetAmountMinor ?? this.targetAmountMinor,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1858,8 +1856,8 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (monthKey.present) {
-      map['month_key'] = Variable<String>(monthKey.value);
+    if (targetDate.present) {
+      map['target_date'] = Variable<DateTime>(targetDate.value);
     }
     if (targetAmountMinor.present) {
       map['target_amount_minor'] = Variable<int>(targetAmountMinor.value);
@@ -1874,7 +1872,7 @@ class SavingsGoalsCompanion extends UpdateCompanion<SavingsGoal> {
   String toString() {
     return (StringBuffer('SavingsGoalsCompanion(')
           ..write('id: $id, ')
-          ..write('monthKey: $monthKey, ')
+          ..write('targetDate: $targetDate, ')
           ..write('targetAmountMinor: $targetAmountMinor, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3095,14 +3093,14 @@ typedef $$TransactionsTableProcessedTableManager =
 typedef $$SavingsGoalsTableCreateCompanionBuilder =
     SavingsGoalsCompanion Function({
       Value<int> id,
-      required String monthKey,
+      required DateTime targetDate,
       required int targetAmountMinor,
       Value<DateTime> updatedAt,
     });
 typedef $$SavingsGoalsTableUpdateCompanionBuilder =
     SavingsGoalsCompanion Function({
       Value<int> id,
-      Value<String> monthKey,
+      Value<DateTime> targetDate,
       Value<int> targetAmountMinor,
       Value<DateTime> updatedAt,
     });
@@ -3121,8 +3119,8 @@ class $$SavingsGoalsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get monthKey => $composableBuilder(
-    column: $table.monthKey,
+  ColumnFilters<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3151,8 +3149,8 @@ class $$SavingsGoalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get monthKey => $composableBuilder(
-    column: $table.monthKey,
+  ColumnOrderings<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3179,8 +3177,10 @@ class $$SavingsGoalsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get monthKey =>
-      $composableBuilder(column: $table.monthKey, builder: (column) => column);
+  GeneratedColumn<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get targetAmountMinor => $composableBuilder(
     column: $table.targetAmountMinor,
@@ -3223,24 +3223,24 @@ class $$SavingsGoalsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<String> monthKey = const Value.absent(),
+                Value<DateTime> targetDate = const Value.absent(),
                 Value<int> targetAmountMinor = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => SavingsGoalsCompanion(
                 id: id,
-                monthKey: monthKey,
+                targetDate: targetDate,
                 targetAmountMinor: targetAmountMinor,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String monthKey,
+                required DateTime targetDate,
                 required int targetAmountMinor,
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => SavingsGoalsCompanion.insert(
                 id: id,
-                monthKey: monthKey,
+                targetDate: targetDate,
                 targetAmountMinor: targetAmountMinor,
                 updatedAt: updatedAt,
               ),

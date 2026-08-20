@@ -9,18 +9,24 @@ part 'savings_goals_dao.g.dart';
 class SavingsGoalsDao extends DatabaseAccessor<AppDatabase> with _$SavingsGoalsDaoMixin {
   SavingsGoalsDao(super.db);
 
-  Stream<SavingsGoal?> watchForMonth(String monthKey) {
-    final query = select(savingsGoals)..where((g) => g.monthKey.equals(monthKey));
+  /// There's only ever one active goal — the most recently set one.
+  Stream<SavingsGoal?> watchGoal() {
+    final query = select(savingsGoals)
+      ..orderBy([(g) => OrderingTerm.desc(g.updatedAt)])
+      ..limit(1);
     return query.watchSingleOrNull();
   }
 
-  Future<void> setForMonth(String monthKey, int targetAmountMinor) {
-    return into(savingsGoals).insertOnConflictUpdate(
-      SavingsGoalsCompanion.insert(
-        monthKey: monthKey,
-        targetAmountMinor: targetAmountMinor,
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
+  Future<void> setGoal({required DateTime targetDate, required int targetAmountMinor}) {
+    return transaction(() async {
+      await delete(savingsGoals).go();
+      await into(savingsGoals).insert(
+        SavingsGoalsCompanion.insert(
+          targetDate: targetDate,
+          targetAmountMinor: targetAmountMinor,
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    });
   }
 }
