@@ -34,7 +34,11 @@ class TotalBalanceBanner extends ConsumerWidget implements PreferredSizeWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.account_balance_wallet_rounded, size: 16, color: scheme.onPrimary),
+            Icon(
+              Icons.account_balance_wallet_rounded,
+              size: 16,
+              color: scheme.onPrimary,
+            ),
             const SizedBox(width: 8),
             totalAsync.when(
               data: (total) => Text(
@@ -48,9 +52,13 @@ class TotalBalanceBanner extends ConsumerWidget implements PreferredSizeWidget {
               loading: () => SizedBox(
                 width: 14,
                 height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2, color: scheme.onPrimary),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: scheme.onPrimary,
+                ),
               ),
-              error: (_, _) => Text('—', style: TextStyle(color: scheme.onPrimary)),
+              error: (_, _) =>
+                  Text('—', style: TextStyle(color: scheme.onPrimary)),
             ),
           ],
         ),

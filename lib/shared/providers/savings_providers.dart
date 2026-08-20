@@ -31,7 +31,11 @@ class DailyBudget {
     if (targetDate == null) return false;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(targetDate!.year, targetDate!.month, targetDate!.day);
+    final target = DateTime(
+      targetDate!.year,
+      targetDate!.month,
+      targetDate!.day,
+    );
     return target.isBefore(today);
   }
 }
@@ -45,7 +49,9 @@ int _daysRemainingUntil(DateTime targetDate, DateTime now) {
 
 /// Combines the live total balance with the user's chosen savings goal into a
 /// daily spending allowance: (balance - goal) / days left until the target date.
-final dailyBudgetProvider = Provider.autoDispose<AsyncValue<DailyBudget>>((ref) {
+final dailyBudgetProvider = Provider.autoDispose<AsyncValue<DailyBudget>>((
+  ref,
+) {
   final totalAsync = ref.watch(totalBalanceProvider);
   final goalAsync = ref.watch(savingsGoalProvider);
 
@@ -53,16 +59,23 @@ final dailyBudgetProvider = Provider.autoDispose<AsyncValue<DailyBudget>>((ref) 
     return const AsyncValue.loading();
   }
   if (totalAsync.hasError) {
-    return AsyncValue.error(totalAsync.error!, totalAsync.stackTrace ?? StackTrace.current);
+    return AsyncValue.error(
+      totalAsync.error!,
+      totalAsync.stackTrace ?? StackTrace.current,
+    );
   }
   if (goalAsync.hasError) {
-    return AsyncValue.error(goalAsync.error!, goalAsync.stackTrace ?? StackTrace.current);
+    return AsyncValue.error(
+      goalAsync.error!,
+      goalAsync.stackTrace ?? StackTrace.current,
+    );
   }
 
   final total = totalAsync.value ?? 0;
   final goal = goalAsync.value;
-  final daysRemaining =
-      goal == null ? 0 : _daysRemainingUntil(goal.targetDate, DateTime.now());
+  final daysRemaining = goal == null
+      ? 0
+      : _daysRemainingUntil(goal.targetDate, DateTime.now());
 
   int? daily;
   if (goal != null) {
@@ -70,11 +83,13 @@ final dailyBudgetProvider = Provider.autoDispose<AsyncValue<DailyBudget>>((ref) 
     daily = spendable <= 0 ? 0 : (spendable / daysRemaining).floor();
   }
 
-  return AsyncValue.data(DailyBudget(
-    totalBalanceMinor: total,
-    goalMinor: goal?.targetAmountMinor,
-    targetDate: goal?.targetDate,
-    daysRemaining: daysRemaining,
-    dailyAmountMinor: daily,
-  ));
+  return AsyncValue.data(
+    DailyBudget(
+      totalBalanceMinor: total,
+      goalMinor: goal?.targetAmountMinor,
+      targetDate: goal?.targetDate,
+      daysRemaining: daysRemaining,
+      dailyAmountMinor: daily,
+    ),
+  );
 });

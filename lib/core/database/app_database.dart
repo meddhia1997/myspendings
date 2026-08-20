@@ -30,22 +30,22 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _seedDefaultCategories();
-        },
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await m.createTable(savingsGoals);
-          }
-          if (from < 3) {
-            // Column set changed (per-month key -> single goal with a target date);
-            // no user-facing data is lost besides the old goal, which the user re-enters.
-            await m.deleteTable(savingsGoals.actualTableName);
-            await m.createTable(savingsGoals);
-          }
-        },
-      );
+    onCreate: (m) async {
+      await m.createAll();
+      await _seedDefaultCategories();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(savingsGoals);
+      }
+      if (from < 3) {
+        // Column set changed (per-month key -> single goal with a target date);
+        // no user-facing data is lost besides the old goal, which the user re-enters.
+        await m.deleteTable(savingsGoals.actualTableName);
+        await m.createTable(savingsGoals);
+      }
+    },
+  );
 
   Future<void> _seedDefaultCategories() async {
     const expenseDefaults = <(String, int, String)>[
@@ -65,27 +65,24 @@ class AppDatabase extends _$AppDatabase {
     ];
 
     await batch((batch) {
-      batch.insertAll(
-        categories,
-        [
-          for (final (name, color, icon) in expenseDefaults)
-            CategoriesCompanion.insert(
-              name: name,
-              type: 'expense',
-              colorValue: color,
-              iconKey: icon,
-              isDefault: const Value(true),
-            ),
-          for (final (name, color, icon) in incomeDefaults)
-            CategoriesCompanion.insert(
-              name: name,
-              type: 'income',
-              colorValue: color,
-              iconKey: icon,
-              isDefault: const Value(true),
-            ),
-        ],
-      );
+      batch.insertAll(categories, [
+        for (final (name, color, icon) in expenseDefaults)
+          CategoriesCompanion.insert(
+            name: name,
+            type: 'expense',
+            colorValue: color,
+            iconKey: icon,
+            isDefault: const Value(true),
+          ),
+        for (final (name, color, icon) in incomeDefaults)
+          CategoriesCompanion.insert(
+            name: name,
+            type: 'income',
+            colorValue: color,
+            iconKey: icon,
+            isDefault: const Value(true),
+          ),
+      ]);
     });
   }
 }

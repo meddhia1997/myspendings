@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/daos/transactions_dao.dart';
 import '../../../shared/providers/database_providers.dart';
 import '../../../shared/providers/savings_providers.dart';
+import '../../../shared/responsive/breakpoints.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
 import '../widgets/quick_expense_sheet.dart';
@@ -20,91 +21,103 @@ class TransactionsScreen extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Spendings'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: _HeroBalanceCard(totalAsync: totalAsync),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: _DailyBudgetCard(),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(_monthLabel(month), style: Theme.of(context).textTheme.titleMedium),
-                Row(
-                  children: [
-                    _RoundIconButton(
-                      icon: Icons.chevron_left_rounded,
-                      onTap: () => ref.read(selectedMonthProvider.notifier).state =
-                          DateTime(month.year, month.month - 1),
-                    ),
-                    const SizedBox(width: 8),
-                    _RoundIconButton(
-                      icon: Icons.chevron_right_rounded,
-                      onTap: () => ref.read(selectedMonthProvider.notifier).state =
-                          DateTime(month.year, month.month + 1),
-                    ),
-                  ],
-                ),
-              ],
+      appBar: AppBar(title: const Text('My Spendings')),
+      body: ResponsiveBody(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: _HeroBalanceCard(totalAsync: totalAsync),
             ),
-          ),
-          Expanded(
-            child: transactionsAsync.when(
-              data: (transactions) {
-                if (transactions.isEmpty) {
-                  return _EmptyState(scheme: scheme);
-                }
-
-                final incomeTotal = transactions
-                    .where((t) => t.transaction.type == 'income')
-                    .fold<int>(0, (sum, t) => sum + t.transaction.amountMinor);
-                final expenseTotal = transactions
-                    .where((t) => t.transaction.type == 'expense')
-                    .fold<int>(0, (sum, t) => sum + t.transaction.amountMinor);
-
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _PillStat(
-                            label: 'Income',
-                            amountMinor: incomeTotal,
-                            color: const Color(0xFF2E9E5B),
-                            icon: Icons.south_west_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _PillStat(
-                            label: 'Expense',
-                            amountMinor: expenseTotal,
-                            color: const Color(0xFFE1544C),
-                            icon: Icons.north_east_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    for (final item in transactions) _TransactionCard(item: item),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Error: $error')),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: _DailyBudgetCard(),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _monthLabel(month),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Row(
+                    children: [
+                      _RoundIconButton(
+                        icon: Icons.chevron_left_rounded,
+                        onTap: () =>
+                            ref.read(selectedMonthProvider.notifier).state =
+                                DateTime(month.year, month.month - 1),
+                      ),
+                      const SizedBox(width: 8),
+                      _RoundIconButton(
+                        icon: Icons.chevron_right_rounded,
+                        onTap: () =>
+                            ref.read(selectedMonthProvider.notifier).state =
+                                DateTime(month.year, month.month + 1),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: transactionsAsync.when(
+                data: (transactions) {
+                  if (transactions.isEmpty) {
+                    return _EmptyState(scheme: scheme);
+                  }
+
+                  final incomeTotal = transactions
+                      .where((t) => t.transaction.type == 'income')
+                      .fold<int>(
+                        0,
+                        (sum, t) => sum + t.transaction.amountMinor,
+                      );
+                  final expenseTotal = transactions
+                      .where((t) => t.transaction.type == 'expense')
+                      .fold<int>(
+                        0,
+                        (sum, t) => sum + t.transaction.amountMinor,
+                      );
+
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _PillStat(
+                              label: 'Income',
+                              amountMinor: incomeTotal,
+                              color: const Color(0xFF2E9E5B),
+                              icon: Icons.south_west_rounded,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _PillStat(
+                              label: 'Expense',
+                              amountMinor: expenseTotal,
+                              color: const Color(0xFFE1544C),
+                              icon: Icons.north_east_rounded,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      for (final item in transactions)
+                        _TransactionCard(item: item),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(child: Text('Error: $error')),
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showQuickExpenseSheet(context),
@@ -116,8 +129,18 @@ class TransactionsScreen extends ConsumerWidget {
 
   String _monthLabel(DateTime month) {
     const names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${names[month.month - 1]} ${month.year}';
   }
@@ -155,11 +178,18 @@ class _HeroBalanceCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.account_balance_wallet_rounded, color: Colors.white.withValues(alpha: 0.85), size: 18),
+              Icon(
+                Icons.account_balance_wallet_rounded,
+                color: Colors.white.withValues(alpha: 0.85),
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Text(
                 'You have',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 14),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -180,9 +210,15 @@ class _HeroBalanceCard extends StatelessWidget {
             loading: () => const SizedBox(
               height: 32,
               width: 32,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
             ),
-            error: (_, _) => const Text('—', style: TextStyle(color: Colors.white, fontSize: 40)),
+            error: (_, _) => const Text(
+              '—',
+              style: TextStyle(color: Colors.white, fontSize: 40),
+            ),
           ),
         ],
       ),
@@ -219,10 +255,16 @@ class _DailyBudgetCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       'Set a savings goal to see how much you can spend per day',
-                      style: TextStyle(fontWeight: FontWeight.w600, color: scheme.onSurface),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: scheme.onSurface,
+                      ),
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -243,11 +285,13 @@ class _DailyBudgetCard extends ConsumerWidget {
           icon = Icons.event_busy_rounded;
         } else if (over) {
           title = 'No room left to spend';
-          subtitle = 'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal';
+          subtitle =
+              'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal';
           icon = Icons.warning_rounded;
         } else {
           title = 'Daily budget · ${_shortDate(budget.targetDate!)}';
-          subtitle = '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left';
+          subtitle =
+              '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left';
           icon = Icons.bolt_rounded;
         }
 
@@ -265,7 +309,10 @@ class _DailyBudgetCard extends ConsumerWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
                   child: Icon(icon, color: color, size: 20),
                 ),
                 const SizedBox(width: 12),
@@ -275,12 +322,20 @@ class _DailyBudgetCard extends ConsumerWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         subtitle,
-                        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
@@ -296,8 +351,18 @@ class _DailyBudgetCard extends ConsumerWidget {
 
   String _shortDate(DateTime date) {
     const names = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${names[date.month - 1]} ${date.day}';
   }
@@ -352,7 +417,10 @@ class _PillStat extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
             child: Icon(icon, color: color, size: 16),
           ),
           const SizedBox(width: 10),
@@ -360,10 +428,18 @@ class _PillStat extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color)),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium
+                      ?.copyWith(color: color),
+                ),
                 Text(
                   formatMoney(amountMinor, 'TND'),
-                  style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 15),
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -400,7 +476,9 @@ class _TransactionCard extends ConsumerWidget {
         ),
         child: const Icon(Icons.delete_outline_rounded, color: Colors.red),
       ),
-      onDismissed: (_) => ref.read(transactionRepositoryProvider).deleteTransaction(item.transaction.id),
+      onDismissed: (_) => ref
+          .read(transactionRepositoryProvider)
+          .deleteTransaction(item.transaction.id),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
@@ -413,11 +491,17 @@ class _TransactionCard extends ConsumerWidget {
               width: 4,
               height: 52,
               margin: const EdgeInsets.only(left: 4),
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
             Expanded(
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 2,
+                ),
                 leading: CircleAvatar(
                   backgroundColor: color.withValues(alpha: 0.15),
                   foregroundColor: color,
@@ -434,7 +518,9 @@ class _TransactionCard extends ConsumerWidget {
                 trailing: Text(
                   '${isExpense ? '-' : '+'}${formatMoney(item.transaction.amountMinor, item.account.currencyCode)}',
                   style: TextStyle(
-                    color: isExpense ? const Color(0xFFE1544C) : const Color(0xFF2E9E5B),
+                    color: isExpense
+                        ? const Color(0xFFE1544C)
+                        : const Color(0xFF2E9E5B),
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -461,13 +547,26 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
-            child: Icon(Icons.receipt_long_rounded, size: 36, color: scheme.onPrimaryContainer),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.receipt_long_rounded,
+              size: 36,
+              color: scheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
-          const Text('Nothing logged yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          const Text(
+            'Nothing logged yet',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          ),
           const SizedBox(height: 4),
-          const Text('Tap "Expense" below to add your first one', style: TextStyle(color: Colors.grey)),
+          const Text(
+            'Tap "Expense" below to add your first one',
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );

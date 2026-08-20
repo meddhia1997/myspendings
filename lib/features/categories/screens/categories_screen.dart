@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../shared/providers/database_providers.dart';
+import '../../../shared/responsive/breakpoints.dart';
+import '../../../shared/responsive/responsive_grid.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/total_balance_banner.dart';
 
@@ -14,22 +16,46 @@ class CategoriesScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories'), bottom: const TotalBalanceBanner()),
+      appBar: AppBar(
+        title: const Text('Categories'),
+        bottom: const TotalBalanceBanner(),
+      ),
       body: categoriesAsync.when(
         data: (categories) {
           final expense = categories.where((c) => c.type == 'expense').toList();
           final income = categories.where((c) => c.type == 'income').toList();
-          return ListView(
+          return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-            children: [
-              Text('Expense', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              for (final category in expense) _CategoryTile(category: category),
-              const SizedBox(height: 16),
-              Text('Income', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              for (final category in income) _CategoryTile(category: category),
-            ],
+            child: ResponsiveBody(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Expense',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ResponsiveCardGrid(
+                    children: [
+                      for (final category in expense)
+                        _CategoryTile(category: category),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Income',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ResponsiveCardGrid(
+                    children: [
+                      for (final category in income)
+                        _CategoryTile(category: category),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -67,10 +93,14 @@ class CategoriesScreen extends ConsumerWidget {
                     initialValue: type,
                     decoration: const InputDecoration(labelText: 'Type'),
                     items: const [
-                      DropdownMenuItem(value: 'expense', child: Text('Expense')),
+                      DropdownMenuItem(
+                        value: 'expense',
+                        child: Text('Expense'),
+                      ),
                       DropdownMenuItem(value: 'income', child: Text('Income')),
                     ],
-                    onChanged: (value) => setState(() => type = value ?? 'expense'),
+                    onChanged: (value) =>
+                        setState(() => type = value ?? 'expense'),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -109,7 +139,9 @@ class CategoriesScreen extends ConsumerWidget {
                   onPressed: () async {
                     final name = nameController.text.trim();
                     if (name.isEmpty) return;
-                    await ref.read(categoryRepositoryProvider).createCategory(
+                    await ref
+                        .read(categoryRepositoryProvider)
+                        .createCategory(
                           name: name,
                           type: type,
                           colorValue: colorValue,
@@ -136,7 +168,6 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -147,7 +178,10 @@ class _CategoryTile extends StatelessWidget {
           foregroundColor: Color(category.colorValue),
           child: Icon(iconForKey(category.iconKey)),
         ),
-        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          category.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

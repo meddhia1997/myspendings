@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/database/app_database.dart' show Account;
 import '../../../shared/providers/database_providers.dart';
+import '../../../shared/responsive/breakpoints.dart';
+import '../../../shared/responsive/responsive_grid.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
 import '../../../shared/widgets/total_balance_banner.dart';
@@ -14,47 +17,25 @@ class AccountsScreen extends ConsumerWidget {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Accounts'), bottom: const TotalBalanceBanner()),
+      appBar: AppBar(
+        title: const Text('Accounts'),
+        bottom: const TotalBalanceBanner(),
+      ),
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
             return _EmptyState(scheme: Theme.of(context).colorScheme);
           }
-          return ListView.builder(
+          return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-            itemCount: accounts.length,
-            itemBuilder: (context, index) {
-              final account = accounts[index];
-              final balanceAsync = ref.watch(accountBalanceProvider(account.id));
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                elevation: 0,
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  leading: CircleAvatar(
-                    backgroundColor: Color(account.colorValue).withValues(alpha: 0.15),
-                    foregroundColor: Color(account.colorValue),
-                    child: Icon(iconForKey(account.iconKey)),
-                  ),
-                  title: Text(account.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text(account.type),
-                  trailing: balanceAsync.when(
-                    data: (balance) => Text(
-                      formatMoney(balance, account.currencyCode),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    loading: () => const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (_, _) => const Icon(Icons.error_outline),
-                  ),
-                ),
-              );
-            },
+            child: ResponsiveBody(
+              child: ResponsiveCardGrid(
+                children: [
+                  for (final account in accounts)
+                    _AccountCard(account: account),
+                ],
+              ),
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -96,13 +77,18 @@ class AccountsScreen extends ConsumerWidget {
                       DropdownMenuItem(value: 'card', child: Text('Card')),
                       DropdownMenuItem(value: 'wallet', child: Text('Wallet')),
                     ],
-                    onChanged: (value) => setState(() => type = value ?? 'cash'),
+                    onChanged: (value) =>
+                        setState(() => type = value ?? 'cash'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: balanceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Starting balance'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Starting balance',
+                    ),
                   ),
                 ],
               ),
@@ -115,19 +101,26 @@ class AccountsScreen extends ConsumerWidget {
                   onPressed: () async {
                     final name = nameController.text.trim();
                     if (name.isEmpty) return;
-                    final iconKey = kAccountIconKeys[type == 'bank'
-                        ? 1
-                        : type == 'card'
+                    final iconKey =
+                        kAccountIconKeys[type == 'bank'
+                            ? 1
+                            : type == 'card'
                             ? 2
                             : type == 'wallet'
-                                ? 0
-                                : 3];
-                    await ref.read(accountRepositoryProvider).createAccount(
+                            ? 0
+                            : 3];
+                    await ref
+                        .read(accountRepositoryProvider)
+                        .createAccount(
                           name: name,
                           type: type,
                           currencyCode: 'TND',
-                          initialBalanceMinor: parseAmountToMinor(balanceController.text),
-                          colorValue: kColorPalette[type.hashCode % kColorPalette.length],
+                          initialBalanceMinor: parseAmountToMinor(
+                            balanceController.text,
+                          ),
+                          colorValue:
+                              kColorPalette[type.hashCode %
+                                  kColorPalette.length],
                           iconKey: iconKey,
                         );
                     if (context.mounted) Navigator.of(context).pop();
@@ -139,6 +132,48 @@ class AccountsScreen extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard({required this.account});
+
+  final Account account;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final balanceAsync = ref.watch(accountBalanceProvider(account.id));
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: Color(account.colorValue).withValues(alpha: 0.15),
+          foregroundColor: Color(account.colorValue),
+          child: Icon(iconForKey(account.iconKey)),
+        ),
+        title: Text(
+          account.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(account.type),
+        trailing: balanceAsync.when(
+          data: (balance) => Text(
+            formatMoney(balance, account.currencyCode),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          loading: () => const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          error: (_, _) => const Icon(Icons.error_outline),
+        ),
+      ),
     );
   }
 }
@@ -156,13 +191,26 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
-            child: Icon(Icons.account_balance_wallet_rounded, size: 36, color: scheme.onPrimaryContainer),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_rounded,
+              size: 36,
+              color: scheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
-          const Text('No accounts yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          const Text(
+            'No accounts yet',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          ),
           const SizedBox(height: 4),
-          const Text('Tap + to add your first one', style: TextStyle(color: Colors.grey)),
+          const Text(
+            'Tap + to add your first one',
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );

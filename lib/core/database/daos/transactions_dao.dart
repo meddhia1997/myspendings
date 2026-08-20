@@ -12,19 +12,30 @@ class TransactionWithDetails {
   final Account account;
   final Category? category;
 
-  TransactionWithDetails({required this.transaction, required this.account, this.category});
+  TransactionWithDetails({
+    required this.transaction,
+    required this.account,
+    this.category,
+  });
 }
 
 @DriftAccessor(tables: [Transactions, Accounts, Categories])
-class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsDaoMixin {
+class TransactionsDao extends DatabaseAccessor<AppDatabase>
+    with _$TransactionsDaoMixin {
   TransactionsDao(super.db);
 
-  Stream<List<TransactionWithDetails>> watchAll({DateTime? from, DateTime? to, int? accountId}) {
+  Stream<List<TransactionWithDetails>> watchAll({
+    DateTime? from,
+    DateTime? to,
+    int? accountId,
+  }) {
     final query = select(transactions).join([
       innerJoin(accounts, accounts.id.equalsExp(transactions.accountId)),
-      leftOuterJoin(categories, categories.id.equalsExp(transactions.categoryId)),
-    ])
-      ..orderBy([OrderingTerm.desc(transactions.date)]);
+      leftOuterJoin(
+        categories,
+        categories.id.equalsExp(transactions.categoryId),
+      ),
+    ])..orderBy([OrderingTerm.desc(transactions.date)]);
 
     if (from != null) {
       query.where(transactions.date.isBiggerOrEqualValue(from));
@@ -37,16 +48,16 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     }
 
     return query.watch().map(
-          (rows) => rows
-              .map(
-                (row) => TransactionWithDetails(
-                  transaction: row.readTable(transactions),
-                  account: row.readTable(accounts),
-                  category: row.readTableOrNull(categories),
-                ),
-              )
-              .toList(),
-        );
+      (rows) => rows
+          .map(
+            (row) => TransactionWithDetails(
+              transaction: row.readTable(transactions),
+              account: row.readTable(accounts),
+              category: row.readTableOrNull(categories),
+            ),
+          )
+          .toList(),
+    );
   }
 
   Stream<List<TransactionWithDetails>> watchForMonth(DateTime month) {
@@ -79,7 +90,8 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     return query.watchSingle().map((row) => row.read<int>('total'));
   }
 
-  Future<int> insertTransaction(TransactionsCompanion entry) => into(transactions).insert(entry);
+  Future<int> insertTransaction(TransactionsCompanion entry) =>
+      into(transactions).insert(entry);
 
   Future<bool> updateTransaction(TransactionsCompanion entry) =>
       update(transactions).replace(entry);

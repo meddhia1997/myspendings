@@ -7,7 +7,8 @@ import 'categories.dart';
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get accountId => integer().references(Accounts, #id)();
-  IntColumn get categoryId => integer().nullable().references(Categories, #id)();
+  IntColumn get categoryId =>
+      integer().nullable().references(Categories, #id)();
   IntColumn get amountMinor => integer()();
   TextColumn get type => text()(); // expense, income
   DateTimeColumn get date => dateTime()();

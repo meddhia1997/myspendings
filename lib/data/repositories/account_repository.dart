@@ -44,7 +44,8 @@ class AccountRepository {
     );
   }
 
-  Future<bool> updateAccount(Account account) => _dao.updateAccount(account.toCompanion(false));
+  Future<bool> updateAccount(Account account) =>
+      _dao.updateAccount(account.toCompanion(false));
 
   Future<void> archiveAccount(int id) => _dao.archiveAccount(id);
 }

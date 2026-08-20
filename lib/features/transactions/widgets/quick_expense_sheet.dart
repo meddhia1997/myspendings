@@ -47,7 +47,10 @@ class _QuickExpenseSheet extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('What did you spend on?', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'What did you spend on?',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 4),
             if (defaultAccount == null)
               const Text(
@@ -63,7 +66,9 @@ class _QuickExpenseSheet extends ConsumerWidget {
             categoriesAsync.when(
               data: (categories) {
                 if (categories.isEmpty) {
-                  return const Text('No expense categories yet — add one in Categories.');
+                  return const Text(
+                    'No expense categories yet — add one in Categories.',
+                  );
                 }
                 return Wrap(
                   spacing: 16,
@@ -96,10 +101,14 @@ class _QuickExpenseSheet extends ConsumerWidget {
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const AddTransactionScreen(),
+                    ),
                   );
                 },
-                child: const Text('Income or a different account? Use the full form'),
+                child: const Text(
+                  'Income or a different account? Use the full form',
+                ),
               ),
             ),
           ],
@@ -110,7 +119,11 @@ class _QuickExpenseSheet extends ConsumerWidget {
 }
 
 class _CategoryBubble extends StatelessWidget {
-  const _CategoryBubble({required this.category, required this.enabled, required this.onTap});
+  const _CategoryBubble({
+    required this.category,
+    required this.enabled,
+    required this.onTap,
+  });
 
   final Category category;
   final bool enabled;
@@ -136,7 +149,11 @@ class _CategoryBubble extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: color.withValues(alpha: 0.3)),
                 ),
-                child: Icon(iconForKey(category.iconKey), color: color, size: 28),
+                child: Icon(
+                  iconForKey(category.iconKey),
+                  color: color,
+                  size: 28,
+                ),
               ),
               const SizedBox(height: 6),
               Text(

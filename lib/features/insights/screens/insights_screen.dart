@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/providers/database_providers.dart';
 import '../../../shared/providers/insights_providers.dart';
+import '../../../shared/responsive/breakpoints.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
 import '../../../shared/widgets/total_balance_banner.dart';
@@ -42,72 +43,98 @@ class InsightsScreen extends ConsumerWidget {
             return _EmptyState(scheme: scheme, month: month);
           }
 
-          final grandTotal = totals.fold<int>(0, (sum, t) => sum + t.totalMinor);
+          final grandTotal = totals.fold<int>(
+            0,
+            (sum, t) => sum + t.totalMinor,
+          );
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
             children: [
-              Text(_monthLabel(month), style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 4),
-              Text(
-                '${formatMoney(grandTotal, 'TND')} spent across ${totals.length} categories',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 20),
-              _SectionCard(
-                title: 'By category',
-                child: SizedBox(
-                  height: 220,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 42,
-                            sections: [
-                              for (final t in totals)
-                                PieChartSectionData(
-                                  value: t.totalMinor.toDouble(),
-                                  color: Color(t.category?.colorValue ?? 0xFF757575),
-                                  radius: 46,
-                                  showTitle: false,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 6,
-                        child: ListView(
-                          padding: EdgeInsets.zero,
+              ResponsiveBody(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _monthLabel(month),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${formatMoney(grandTotal, 'TND')} spent across ${totals.length} categories',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 20),
+                    _SectionCard(
+                      title: 'By category',
+                      child: SizedBox(
+                        height: 220,
+                        child: Row(
                           children: [
-                            for (final t in totals.take(6))
-                              _LegendRow(total: t, grandTotal: grandTotal),
+                            Expanded(
+                              flex: 5,
+                              child: PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 42,
+                                  sections: [
+                                    for (final t in totals)
+                                      PieChartSectionData(
+                                        value: t.totalMinor.toDouble(),
+                                        color: Color(
+                                          t.category?.colorValue ?? 0xFF757575,
+                                        ),
+                                        radius: 46,
+                                        showTitle: false,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: ListView(
+                                padding: EdgeInsets.zero,
+                                children: [
+                                  for (final t in totals.take(6))
+                                    _LegendRow(
+                                      total: t,
+                                      grandTotal: grandTotal,
+                                    ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      title: 'Daily spending',
+                      child: SizedBox(
+                        height: 160,
+                        child: dailyAsync.when(
+                          data: (daily) => _DailyTrendChart(
+                            daily: daily,
+                            color: scheme.primary,
+                          ),
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, _) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Breakdown',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    _CategoryTable(totals: totals, grandTotal: grandTotal),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              _SectionCard(
-                title: 'Daily spending',
-                child: SizedBox(
-                  height: 160,
-                  child: dailyAsync.when(
-                    data: (daily) => _DailyTrendChart(daily: daily, color: scheme.primary),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text('Breakdown', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              _CategoryTable(totals: totals, grandTotal: grandTotal),
             ],
           );
         },
@@ -119,8 +146,18 @@ class InsightsScreen extends ConsumerWidget {
 
   String _monthLabel(DateTime month) {
     const names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${names[month.month - 1]} ${month.year}';
   }
@@ -183,7 +220,10 @@ class _LegendRow extends StatelessWidget {
           ),
           Text(
             '${percent.toStringAsFixed(0)}%',
-            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -199,7 +239,10 @@ class _DailyTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxValue = daily.fold<int>(0, (m, d) => d.expenseMinor > m ? d.expenseMinor : m);
+    final maxValue = daily.fold<int>(
+      0,
+      (m, d) => d.expenseMinor > m ? d.expenseMinor : m,
+    );
     if (maxValue == 0) {
       return const Center(child: Text('No expenses logged yet this month.'));
     }
@@ -212,9 +255,7 @@ class _DailyTrendChart extends StatelessWidget {
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         minY: 0,
@@ -222,13 +263,17 @@ class _DailyTrendChart extends StatelessWidget {
         lineBarsData: [
           LineChartBarData(
             spots: [
-              for (final d in daily) FlSpot(d.day.toDouble(), d.expenseMinor / 100),
+              for (final d in daily)
+                FlSpot(d.day.toDouble(), d.expenseMinor / 100),
             ],
             isCurved: true,
             color: color,
             barWidth: 2.5,
             dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(show: true, color: color.withValues(alpha: 0.12)),
+            belowBarData: BarAreaData(
+              show: true,
+              color: color.withValues(alpha: 0.12),
+            ),
           ),
         ],
       ),
@@ -254,7 +299,11 @@ class _CategoryTable extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < totals.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.4)),
+            if (i > 0)
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
             _CategoryTableRow(total: totals[i], grandTotal: grandTotal),
           ],
         ],
@@ -282,7 +331,10 @@ class _CategoryTableRow extends StatelessWidget {
             radius: 16,
             backgroundColor: color.withValues(alpha: 0.15),
             foregroundColor: color,
-            child: Icon(iconForKey(total.category?.iconKey ?? 'category'), size: 16),
+            child: Icon(
+              iconForKey(total.category?.iconKey ?? 'category'),
+              size: 16,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -291,11 +343,17 @@ class _CategoryTableRow extends StatelessWidget {
               children: [
                 Text(
                   total.category?.name ?? 'Uncategorized',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
                 Text(
                   '${total.count} transaction${total.count == 1 ? '' : 's'}',
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -305,11 +363,17 @@ class _CategoryTableRow extends StatelessWidget {
             children: [
               Text(
                 formatMoney(total.totalMinor, 'TND'),
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
               ),
               Text(
                 '${percent.toStringAsFixed(0)}%',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -333,13 +397,26 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
-            child: Icon(Icons.insights_rounded, size: 36, color: scheme.onPrimaryContainer),
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.insights_rounded,
+              size: 36,
+              color: scheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
-          const Text('No expenses to analyze yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          const Text(
+            'No expenses to analyze yet',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          ),
           const SizedBox(height: 4),
-          const Text('Log a few expenses to see charts here', style: TextStyle(color: Colors.grey)),
+          const Text(
+            'Log a few expenses to see charts here',
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );

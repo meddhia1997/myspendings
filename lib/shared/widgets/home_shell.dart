@@ -4,6 +4,7 @@ import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/insights/screens/insights_screen.dart';
 import '../../features/transactions/screens/transactions_screen.dart';
+import '../responsive/breakpoints.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -31,39 +32,114 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final wide = !isCompact(context);
+    final body = IndexedStack(index: _index, children: _screens);
+
+    if (wide) {
+      return Scaffold(
+        body: Row(
+          children: [
+            _SideRail(
+              items: _items,
+              selected: _index,
+              onSelect: (i) => setState(() => _index = i),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
-      body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        child: Container(
-          height: 68,
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+      body: body,
+      bottomNavigationBar: _FloatingBottomNav(
+        items: _items,
+        selected: _index,
+        onSelect: (i) => setState(() => _index = i),
+      ),
+    );
+  }
+}
+
+class _FloatingBottomNav extends StatelessWidget {
+  const _FloatingBottomNav({
+    required this.items,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final List<({IconData icon, String label})> items;
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Container(
+        height: 68,
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (var i = 0; i < items.length; i++)
+              _NavButton(
+                icon: items[i].icon,
+                label: items[i].label,
+                selected: i == selected,
+                onTap: () => onSelect(i),
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (var i = 0; i < _items.length; i++)
-                _NavButton(
-                  icon: _items[i].icon,
-                  label: _items[i].label,
-                  selected: i == _index,
-                  onTap: () => setState(() => _index = i),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+/// Vertical rail used on wide screens (tablets, landscape, foldables) instead
+/// of squeezing a bottom bar meant for phone portrait widths.
+class _SideRail extends StatelessWidget {
+  const _SideRail({
+    required this.items,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final List<({IconData icon, String label})> items;
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return NavigationRail(
+      selectedIndex: selected,
+      onDestinationSelected: onSelect,
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: scheme.surface,
+      indicatorColor: scheme.primary,
+      selectedIconTheme: IconThemeData(color: scheme.onPrimary),
+      destinations: [
+        for (final item in items)
+          NavigationRailDestination(
+            icon: Icon(item.icon),
+            label: Text(item.label),
+          ),
+      ],
     );
   }
 }
@@ -119,6 +195,8 @@ class _NavButton extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       )
                     : const SizedBox.shrink(),

@@ -51,7 +51,9 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
   Future<void> _save() async {
     if (_value <= 0 || _saving) return;
     setState(() => _saving = true);
-    await ref.read(transactionRepositoryProvider).addTransaction(
+    await ref
+        .read(transactionRepositoryProvider)
+        .addTransaction(
           accountId: widget.accountId,
           categoryId: widget.category.id,
           amountMinor: (_value * 100).round(),
@@ -92,14 +94,20 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                   child: Icon(iconForKey(widget.category.iconKey), size: 16),
                 ),
                 const SizedBox(width: 8),
-                Text(widget.category.name, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  widget.category.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 16),
             FittedBox(
               child: Text(
                 formatMoney((_value * 100).round(), 'TND'),
-                style: const TextStyle(fontSize: 44, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -113,7 +121,10 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.check),
                 label: const Text('Save expense'),
@@ -136,7 +147,20 @@ class _Keypad extends StatelessWidget {
   final ValueChanged<String> onDigit;
   final VoidCallback onBackspace;
 
-  static const _keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '⌫'];
+  static const _keys = [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '00',
+    '0',
+    '⌫',
+  ];
 
   @override
   Widget build(BuildContext context) {

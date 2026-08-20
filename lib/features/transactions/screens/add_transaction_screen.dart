@@ -8,7 +8,8 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({super.key});
 
   @override
-  ConsumerState<AddTransactionScreen> createState() => _AddTransactionScreenState();
+  ConsumerState<AddTransactionScreen> createState() =>
+      _AddTransactionScreenState();
 }
 
 class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
@@ -57,10 +58,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(labelText: 'Amount'),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Enter an amount';
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Enter an amount';
+                  }
                   final parsed = parseAmountToMinor(value);
                   if (parsed <= 0) return 'Enter a valid amount';
                   return null;
@@ -78,7 +83,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     decoration: const InputDecoration(labelText: 'Account'),
                     items: [
                       for (final account in accounts)
-                        DropdownMenuItem(value: account.id, child: Text(account.name)),
+                        DropdownMenuItem(
+                          value: account.id,
+                          child: Text(account.name),
+                        ),
                     ],
                     onChanged: (value) => setState(() => _accountId = value),
                   );
@@ -91,11 +99,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 data: (categories) {
                   return DropdownButtonFormField<int>(
                     initialValue: _categoryId,
-                    decoration: const InputDecoration(labelText: 'Category (optional)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Category (optional)',
+                    ),
                     items: [
                       const DropdownMenuItem(value: null, child: Text('None')),
                       for (final category in categories)
-                        DropdownMenuItem(value: category.id, child: Text(category.name)),
+                        DropdownMenuItem(
+                          value: category.id,
+                          child: Text(category.name),
+                        ),
                     ],
                     onChanged: (value) => setState(() => _categoryId = value),
                   );
@@ -107,7 +120,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Date'),
-                subtitle: Text('${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}'),
+                subtitle: Text(
+                  '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
+                ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -125,10 +140,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 decoration: const InputDecoration(labelText: 'Note (optional)'),
               ),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _submit,
-                child: const Text('Save'),
-              ),
+              FilledButton(onPressed: _submit, child: const Text('Save')),
             ],
           ),
         ),
@@ -140,13 +152,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_accountId == null) return;
 
-    await ref.read(transactionRepositoryProvider).addTransaction(
+    await ref
+        .read(transactionRepositoryProvider)
+        .addTransaction(
           accountId: _accountId!,
           categoryId: _categoryId,
           amountMinor: parseAmountToMinor(_amountController.text),
           type: _type,
           date: _date,
-          note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
         );
 
     if (mounted) Navigator.of(context).pop();

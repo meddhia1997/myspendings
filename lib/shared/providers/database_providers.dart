@@ -38,7 +38,10 @@ final accountsProvider = StreamProvider.autoDispose((ref) {
   return ref.watch(accountRepositoryProvider).watchAccounts();
 });
 
-final accountBalanceProvider = StreamProvider.autoDispose.family<int, int>((ref, accountId) {
+final accountBalanceProvider = StreamProvider.autoDispose.family<int, int>((
+  ref,
+  accountId,
+) {
   return ref.watch(accountRepositoryProvider).watchBalance(accountId);
 });
 
@@ -46,7 +49,10 @@ final categoriesProvider = StreamProvider.autoDispose((ref) {
   return ref.watch(categoryRepositoryProvider).watchCategories();
 });
 
-final categoriesByTypeProvider = StreamProvider.autoDispose.family((ref, String type) {
+final categoriesByTypeProvider = StreamProvider.autoDispose.family((
+  ref,
+  String type,
+) {
   return ref.watch(categoryRepositoryProvider).watchByType(type);
 });
 

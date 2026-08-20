@@ -8,6 +8,11 @@ class SavingsGoalRepository {
 
   Stream<SavingsGoal?> watchGoal() => _dao.watchGoal();
 
-  Future<void> setGoal({required DateTime targetDate, required int targetAmountMinor}) =>
-      _dao.setGoal(targetDate: targetDate, targetAmountMinor: targetAmountMinor);
+  Future<void> setGoal({
+    required DateTime targetDate,
+    required int targetAmountMinor,
+  }) => _dao.setGoal(
+    targetDate: targetDate,
+    targetAmountMinor: targetAmountMinor,
+  );
 }

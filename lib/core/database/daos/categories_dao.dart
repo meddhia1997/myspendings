@@ -6,12 +6,16 @@ import '../tables/categories.dart';
 part 'categories_dao.g.dart';
 
 @DriftAccessor(tables: [Categories])
-class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMixin {
+class CategoriesDao extends DatabaseAccessor<AppDatabase>
+    with _$CategoriesDaoMixin {
   CategoriesDao(super.db);
 
   Stream<List<Category>> watchAll({bool includeArchived = false}) {
     final query = select(categories)
-      ..where((c) => includeArchived ? const Constant(true) : c.isArchived.equals(false))
+      ..where(
+        (c) =>
+            includeArchived ? const Constant(true) : c.isArchived.equals(false),
+      )
       ..orderBy([(c) => OrderingTerm.asc(c.name)]);
     return query.watch();
   }
@@ -26,10 +30,14 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMi
   Future<Category?> getById(int id) =>
       (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
 
-  Future<int> insertCategory(CategoriesCompanion entry) => into(categories).insert(entry);
+  Future<int> insertCategory(CategoriesCompanion entry) =>
+      into(categories).insert(entry);
 
-  Future<bool> updateCategory(CategoriesCompanion entry) => update(categories).replace(entry);
+  Future<bool> updateCategory(CategoriesCompanion entry) =>
+      update(categories).replace(entry);
 
-  Future<void> archiveCategory(int id) => (update(categories)..where((c) => c.id.equals(id)))
-      .write(const CategoriesCompanion(isArchived: Value(true)));
+  Future<void> archiveCategory(int id) =>
+      (update(categories)..where((c) => c.id.equals(id))).write(
+        const CategoriesCompanion(isArchived: Value(true)),
+      );
 }

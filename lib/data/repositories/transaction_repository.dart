@@ -11,7 +11,10 @@ class TransactionRepository {
   Stream<List<TransactionWithDetails>> watchAll({int? accountId}) =>
       _dao.watchAll(accountId: accountId);
 
-  Stream<List<TransactionWithDetails>> watchForMonth(DateTime month, {int? accountId}) {
+  Stream<List<TransactionWithDetails>> watchForMonth(
+    DateTime month, {
+    int? accountId,
+  }) {
     final start = DateTime(month.year, month.month);
     final end = DateTime(month.year, month.month + 1);
     return _dao.watchAll(from: start, to: end, accountId: accountId);

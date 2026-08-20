@@ -6,7 +6,8 @@ import '../tables/savings_goals.dart';
 part 'savings_goals_dao.g.dart';
 
 @DriftAccessor(tables: [SavingsGoals])
-class SavingsGoalsDao extends DatabaseAccessor<AppDatabase> with _$SavingsGoalsDaoMixin {
+class SavingsGoalsDao extends DatabaseAccessor<AppDatabase>
+    with _$SavingsGoalsDaoMixin {
   SavingsGoalsDao(super.db);
 
   /// There's only ever one active goal — the most recently set one.
@@ -17,7 +18,10 @@ class SavingsGoalsDao extends DatabaseAccessor<AppDatabase> with _$SavingsGoalsD
     return query.watchSingleOrNull();
   }
 
-  Future<void> setGoal({required DateTime targetDate, required int targetAmountMinor}) {
+  Future<void> setGoal({
+    required DateTime targetDate,
+    required int targetAmountMinor,
+  }) {
     return transaction(() async {
       await delete(savingsGoals).go();
       await into(savingsGoals).insert(

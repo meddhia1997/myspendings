@@ -56,7 +56,9 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
     if (!_initialized) {
       final existing = goalAsync.valueOrNull;
       if (existing != null) {
-        _controller.text = (existing.targetAmountMinor / 100).toStringAsFixed(2);
+        _controller.text = (existing.targetAmountMinor / 100).toStringAsFixed(
+          2,
+        );
         _targetDate = existing.targetDate;
       }
       _initialized = true;
@@ -96,7 +98,9 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
             TextField(
               controller: _controller,
               autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 prefixText: 'TND  ',
@@ -109,23 +113,36 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
               borderRadius: BorderRadius.circular(14),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.event_rounded, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.event_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('By when', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          const Text(
+                            'By when',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
                           Text(
                             _formatDate(targetDate),
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
                           ),
                         ],
                       ),
@@ -141,7 +158,9 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
               child: FilledButton(
                 onPressed: () async {
                   final minor = parseAmountToMinor(_controller.text);
-                  await ref.read(savingsGoalRepositoryProvider).setGoal(
+                  await ref
+                      .read(savingsGoalRepositoryProvider)
+                      .setGoal(
                         targetDate: targetDate,
                         targetAmountMinor: minor,
                       );
@@ -158,8 +177,18 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
 
   String _formatDate(DateTime date) {
     const names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${names[date.month - 1]} ${date.day}, ${date.year}';
   }
