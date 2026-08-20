@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
+import '../../features/insights/screens/insights_screen.dart';
 import '../../features/transactions/screens/transactions_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -16,12 +17,14 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _screens = [
     TransactionsScreen(),
+    InsightsScreen(),
     AccountsScreen(),
     CategoriesScreen(),
   ];
 
   static const _items = [
     (icon: Icons.receipt_long_rounded, label: 'Home'),
+    (icon: Icons.insights_rounded, label: 'Insights'),
     (icon: Icons.account_balance_wallet_rounded, label: 'Accounts'),
     (icon: Icons.category_rounded, label: 'Categories'),
   ];
