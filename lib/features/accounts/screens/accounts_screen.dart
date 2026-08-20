@@ -18,10 +18,10 @@ class AccountsScreen extends ConsumerWidget {
       body: accountsAsync.when(
         data: (accounts) {
           if (accounts.isEmpty) {
-            return const Center(child: Text('No accounts yet. Add one to get started.'));
+            return _EmptyState(scheme: Theme.of(context).colorScheme);
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
@@ -139,6 +139,32 @@ class AccountsScreen extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.scheme});
+
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
+            child: Icon(Icons.account_balance_wallet_rounded, size: 36, color: scheme.onPrimaryContainer),
+          ),
+          const SizedBox(height: 16),
+          const Text('No accounts yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          const SizedBox(height: 4),
+          const Text('Tap + to add your first one', style: TextStyle(color: Colors.grey)),
+        ],
+      ),
     );
   }
 }

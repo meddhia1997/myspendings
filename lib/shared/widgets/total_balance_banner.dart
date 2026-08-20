@@ -10,7 +10,7 @@ class TotalBalanceBanner extends ConsumerWidget implements PreferredSizeWidget {
   const TotalBalanceBanner({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(40);
+  Size get preferredSize => const Size.fromHeight(52);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,26 +19,40 @@ class TotalBalanceBanner extends ConsumerWidget implements PreferredSizeWidget {
 
     return Container(
       height: preferredSize.height,
-      width: double.infinity,
-      color: scheme.primaryContainer,
-      alignment: Alignment.center,
-      child: totalAsync.when(
-        data: (total) => Text(
-          'You have ${formatMoney(total, 'TND')}',
-          style: TextStyle(
-            color: scheme.onPrimaryContainer,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [scheme.primary, scheme.primary.withValues(alpha: 0.75)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
+          borderRadius: BorderRadius.circular(14),
         ),
-        loading: () => const SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        error: (_, _) => Text(
-          'Balance unavailable',
-          style: TextStyle(color: scheme.onPrimaryContainer),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.account_balance_wallet_rounded, size: 16, color: scheme.onPrimary),
+            const SizedBox(width: 8),
+            totalAsync.when(
+              data: (total) => Text(
+                formatMoney(total, 'TND'),
+                style: TextStyle(
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              loading: () => SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2, color: scheme.onPrimary),
+              ),
+              error: (_, _) => Text('—', style: TextStyle(color: scheme.onPrimary)),
+            ),
+          ],
         ),
       ),
     );

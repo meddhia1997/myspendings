@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'shared/widgets/home_shell.dart';
 
@@ -13,6 +14,7 @@ class MySpendingsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF0F9D82));
+    final textTheme = GoogleFonts.plusJakartaSansTextTheme();
 
     return MaterialApp(
       title: 'My Spendings',
@@ -20,12 +22,18 @@ class MySpendingsApp extends StatelessWidget {
         colorScheme: scheme,
         useMaterial3: true,
         scaffoldBackgroundColor: scheme.surface,
+        textTheme: textTheme,
         appBarTheme: AppBarTheme(
-          backgroundColor: scheme.surface,
+          backgroundColor: Colors.transparent,
           foregroundColor: scheme.onSurface,
           elevation: 0,
           scrolledUnderElevation: 0,
           centerTitle: false,
+          titleTextStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurface,
+          ),
         ),
         cardTheme: const CardThemeData(
           elevation: 0,
@@ -33,8 +41,9 @@ class MySpendingsApp extends StatelessWidget {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -46,7 +55,8 @@ class MySpendingsApp extends StatelessWidget {
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 2,
         ),
       ),
       home: const HomeShell(),
