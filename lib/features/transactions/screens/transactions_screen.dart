@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/daos/transactions_dao.dart';
 import '../../../shared/providers/database_providers.dart';
+import '../../../shared/providers/savings_providers.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
 import '../widgets/quick_expense_sheet.dart';
+import '../widgets/savings_goal_sheet.dart';
 
 class TransactionsScreen extends ConsumerWidget {
   const TransactionsScreen({super.key});
@@ -24,8 +26,12 @@ class TransactionsScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: _HeroBalanceCard(totalAsync: totalAsync),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: _DailyBudgetCard(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -180,6 +186,93 @@ class _HeroBalanceCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DailyBudgetCard extends ConsumerWidget {
+  const _DailyBudgetCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final budgetAsync = ref.watch(dailyBudgetProvider);
+    final scheme = Theme.of(context).colorScheme;
+
+    return budgetAsync.when(
+      loading: () => const SizedBox(height: 64),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (budget) {
+        if (budget.goalMinor == null) {
+          return InkWell(
+            onTap: () => showSavingsGoalSheet(context),
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: scheme.outlineVariant),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.flag_rounded, color: scheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Set a savings goal to see how much you can spend per day',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: scheme.onSurface),
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final over = budget.isOverBudget;
+        final color = over ? const Color(0xFFE1544C) : scheme.primary;
+
+        return InkWell(
+          onTap: () => showSavingsGoalSheet(context),
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
+                  child: Icon(over ? Icons.warning_rounded : Icons.bolt_rounded, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        over ? 'No room left to spend' : 'Daily budget',
+                        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                      Text(
+                        over
+                            ? 'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal'
+                            : '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left',
+                        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.edit_rounded, color: color, size: 18),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

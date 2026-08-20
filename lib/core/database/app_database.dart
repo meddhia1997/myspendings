@@ -7,16 +7,18 @@ import 'package:path_provider/path_provider.dart';
 
 import 'daos/accounts_dao.dart';
 import 'daos/categories_dao.dart';
+import 'daos/savings_goals_dao.dart';
 import 'daos/transactions_dao.dart';
 import 'tables/accounts.dart';
 import 'tables/categories.dart';
+import 'tables/savings_goals.dart';
 import 'tables/transactions.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Accounts, Categories, Transactions],
-  daos: [AccountsDao, CategoriesDao, TransactionsDao],
+  tables: [Accounts, Categories, Transactions, SavingsGoals],
+  daos: [AccountsDao, CategoriesDao, TransactionsDao, SavingsGoalsDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -24,13 +26,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedDefaultCategories();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(savingsGoals);
+          }
         },
       );
 
