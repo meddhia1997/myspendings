@@ -7,6 +7,7 @@ import '../../../shared/providers/savings_providers.dart';
 import '../../../shared/responsive/breakpoints.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
+import '../widgets/backup_menu_button.dart';
 import '../widgets/fixed_expenses_row.dart';
 import '../widgets/quick_expense_sheet.dart';
 import '../widgets/savings_goal_sheet.dart';
@@ -26,7 +27,10 @@ class TransactionsScreen extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Spendings')),
+      appBar: AppBar(
+        title: const Text('My Spendings'),
+        actions: const [BackupMenuButton()],
+      ),
       body: ResponsiveBody(
         child: Column(
           children: [
