@@ -100,6 +100,10 @@ class _FixedExpenseChip extends ConsumerWidget {
         .read(fixedExpenseRepositoryProvider)
         .log(template, fallbackAccountId: defaultAccount.id);
 
+    // Jump the browsed month to today so the newly logged expense is visible immediately.
+    final now = DateTime.now();
+    ref.read(selectedMonthProvider.notifier).state = DateTime(now.year, now.month);
+
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

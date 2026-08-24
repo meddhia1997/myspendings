@@ -24,11 +24,7 @@ class TotalBalanceBanner extends ConsumerWidget implements PreferredSizeWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [scheme.primary, scheme.primary.withValues(alpha: 0.75)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
+          color: scheme.primary,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(

@@ -165,6 +165,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               : _noteController.text.trim(),
         );
 
+    // Jump the browsed month to wherever this landed so it's visible immediately.
+    ref.read(selectedMonthProvider.notifier).state = DateTime(_date.year, _date.month);
+
     if (mounted) Navigator.of(context).pop();
   }
 }

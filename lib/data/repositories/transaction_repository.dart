@@ -48,4 +48,7 @@ class TransactionRepository {
   Future<int> deleteTransaction(int id) => _dao.deleteTransaction(id);
 
   Stream<int> watchTotalBalance() => _dao.watchTotalBalance();
+
+  Stream<int> watchExpenseTotalForDay(DateTime day) =>
+      _dao.watchExpenseTotalForDay(day);
 }

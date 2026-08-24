@@ -51,6 +51,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
   Future<void> _save() async {
     if (_value <= 0 || _saving) return;
     setState(() => _saving = true);
+    final date = DateTime.now();
     await ref
         .read(transactionRepositoryProvider)
         .addTransaction(
@@ -58,8 +59,10 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
           categoryId: widget.category.id,
           amountMinor: (_value * 100).round(),
           type: 'expense',
-          date: DateTime.now(),
+          date: date,
         );
+    // Jump the browsed month to wherever this landed so it's visible immediately.
+    ref.read(selectedMonthProvider.notifier).state = DateTime(date.year, date.month);
     if (mounted) Navigator.of(context).pop();
   }
 

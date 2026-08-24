@@ -90,6 +90,24 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     return query.watchSingle().map((row) => row.read<int>('total'));
   }
 
+  /// Total expenses booked for a single calendar day, e.g. to check today's
+  /// spending against a daily budget.
+  Stream<int> watchExpenseTotalForDay(DateTime day) {
+    final start = DateTime(day.year, day.month, day.day);
+    final end = start.add(const Duration(days: 1));
+    final query = customSelect(
+      'SELECT COALESCE(SUM(amount_minor), 0) AS total FROM transactions '
+      'WHERE type = ?1 AND date >= ?2 AND date < ?3',
+      variables: [
+        Variable.withString('expense'),
+        Variable.withDateTime(start),
+        Variable.withDateTime(end),
+      ],
+      readsFrom: {transactions},
+    );
+    return query.watchSingle().map((row) => row.read<int>('total'));
+  }
+
   Future<int> insertTransaction(TransactionsCompanion entry) =>
       into(transactions).insert(entry);
 

@@ -11,6 +11,9 @@ import '../widgets/fixed_expenses_row.dart';
 import '../widgets/quick_expense_sheet.dart';
 import '../widgets/savings_goal_sheet.dart';
 
+const _expenseColor = Color(0xFFE1544C);
+const _incomeColor = Color(0xFF4CAF7D);
+
 class TransactionsScreen extends ConsumerWidget {
   const TransactionsScreen({super.key});
 
@@ -19,6 +22,7 @@ class TransactionsScreen extends ConsumerWidget {
     final month = ref.watch(selectedMonthProvider);
     final transactionsAsync = ref.watch(monthlyTransactionsProvider);
     final totalAsync = ref.watch(totalBalanceProvider);
+    final budgetAsync = ref.watch(dailyBudgetProvider);
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -27,12 +31,8 @@ class TransactionsScreen extends ConsumerWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: _HeroBalanceCard(totalAsync: totalAsync),
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: _DailyBudgetCard(),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: _BalanceCard(totalAsync: totalAsync, budgetAsync: budgetAsync),
             ),
             const Padding(
               padding: EdgeInsets.only(bottom: 8),
@@ -43,24 +43,19 @@ class TransactionsScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _monthLabel(month),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(_monthLabel(month), style: Theme.of(context).textTheme.titleMedium),
                   Row(
                     children: [
                       _RoundIconButton(
                         icon: Icons.chevron_left_rounded,
-                        onTap: () =>
-                            ref.read(selectedMonthProvider.notifier).state =
-                                DateTime(month.year, month.month - 1),
+                        onTap: () => ref.read(selectedMonthProvider.notifier).state =
+                            DateTime(month.year, month.month - 1),
                       ),
                       const SizedBox(width: 8),
                       _RoundIconButton(
                         icon: Icons.chevron_right_rounded,
-                        onTap: () =>
-                            ref.read(selectedMonthProvider.notifier).state =
-                                DateTime(month.year, month.month + 1),
+                        onTap: () => ref.read(selectedMonthProvider.notifier).state =
+                            DateTime(month.year, month.month + 1),
                       ),
                     ],
                   ),
@@ -76,16 +71,10 @@ class TransactionsScreen extends ConsumerWidget {
 
                   final incomeTotal = transactions
                       .where((t) => t.transaction.type == 'income')
-                      .fold<int>(
-                        0,
-                        (sum, t) => sum + t.transaction.amountMinor,
-                      );
+                      .fold<int>(0, (sum, t) => sum + t.transaction.amountMinor);
                   final expenseTotal = transactions
                       .where((t) => t.transaction.type == 'expense')
-                      .fold<int>(
-                        0,
-                        (sum, t) => sum + t.transaction.amountMinor,
-                      );
+                      .fold<int>(0, (sum, t) => sum + t.transaction.amountMinor);
 
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 90),
@@ -96,7 +85,7 @@ class TransactionsScreen extends ConsumerWidget {
                             child: _PillStat(
                               label: 'Income',
                               amountMinor: incomeTotal,
-                              color: const Color(0xFF2E9E5B),
+                              color: _incomeColor,
                               icon: Icons.south_west_rounded,
                             ),
                           ),
@@ -105,15 +94,14 @@ class TransactionsScreen extends ConsumerWidget {
                             child: _PillStat(
                               label: 'Expense',
                               amountMinor: expenseTotal,
-                              color: const Color(0xFFE1544C),
+                              color: _expenseColor,
                               icon: Icons.north_east_rounded,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      for (final item in transactions)
-                        _TransactionCard(item: item),
+                      const SizedBox(height: 16),
+                      for (final item in transactions) _TransactionCard(item: item),
                     ],
                   );
                 },
@@ -124,152 +112,115 @@ class TransactionsScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => showQuickExpenseSheet(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Expense'),
+        tooltip: 'Add expense',
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }
 
   String _monthLabel(DateTime month) {
     const names = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return '${names[month.month - 1]} ${month.year}';
   }
 }
 
-class _HeroBalanceCard extends StatelessWidget {
-  const _HeroBalanceCard({required this.totalAsync});
+/// One flat card: total balance up top, the daily-budget summary underneath —
+/// replaces two separately-styled cards that used to stack here.
+class _BalanceCard extends ConsumerWidget {
+  const _BalanceCard({required this.totalAsync, required this.budgetAsync});
 
   final AsyncValue<int> totalAsync;
+  final AsyncValue<DailyBudget> budgetAsync;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 26),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [scheme.primary, const Color(0xFF0B5C4C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.account_balance_wallet_rounded,
-                color: Colors.white.withValues(alpha: 0.85),
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'You have',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  fontSize: 14,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'You have',
+                  style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          totalAsync.when(
-            data: (total) => FittedBox(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                formatMoney(total, 'TND'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                const SizedBox(height: 4),
+                totalAsync.when(
+                  data: (total) => FittedBox(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      formatMoney(total, 'TND'),
+                      style: TextStyle(
+                        color: scheme.primary,
+                        fontSize: 38,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  loading: () => SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: scheme.primary),
+                  ),
+                  error: (_, _) => Text('—', style: TextStyle(color: scheme.primary, fontSize: 38)),
                 ),
-              ),
-            ),
-            loading: () => const SizedBox(
-              height: 32,
-              width: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-            error: (_, _) => const Text(
-              '—',
-              style: TextStyle(color: Colors.white, fontSize: 40),
+              ],
             ),
           ),
+          Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+          _BudgetRow(budgetAsync: budgetAsync),
         ],
       ),
     );
   }
 }
 
-class _DailyBudgetCard extends ConsumerWidget {
-  const _DailyBudgetCard();
+class _BudgetRow extends StatelessWidget {
+  const _BudgetRow({required this.budgetAsync});
+
+  final AsyncValue<DailyBudget> budgetAsync;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final budgetAsync = ref.watch(dailyBudgetProvider);
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
     return budgetAsync.when(
-      loading: () => const SizedBox(height: 64),
+      loading: () => const SizedBox(height: 56),
       error: (_, _) => const SizedBox.shrink(),
       data: (budget) {
         if (budget.goalMinor == null) {
           return InkWell(
             onTap: () => showSavingsGoalSheet(context),
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: scheme.outlineVariant),
-                borderRadius: BorderRadius.circular(18),
-              ),
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 16, 16),
               child: Row(
                 children: [
-                  Icon(Icons.flag_rounded, color: scheme.primary),
-                  const SizedBox(width: 12),
+                  Icon(Icons.flag_rounded, color: scheme.primary, size: 18),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Set a savings goal to see how much you can spend per day',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: scheme.onSurface,
-                      ),
+                      'Set a savings goal to see your daily budget',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: scheme.onSurface),
                     ),
                   ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
                 ],
               ),
             ),
@@ -278,8 +229,9 @@ class _DailyBudgetCard extends ConsumerWidget {
 
         final over = budget.isOverBudget;
         final pastDeadline = budget.isPastDeadline;
-        final warn = over || pastDeadline;
-        final color = warn ? const Color(0xFFE1544C) : scheme.primary;
+        final overToday = budget.isOverToday;
+        final warn = over || pastDeadline || overToday;
+        final color = warn ? _expenseColor : scheme.primary;
 
         String title;
         String subtitle;
@@ -290,62 +242,50 @@ class _DailyBudgetCard extends ConsumerWidget {
           icon = Icons.event_busy_rounded;
         } else if (over) {
           title = 'No room left to spend';
-          subtitle =
-              'You are at or below your ${formatMoney(budget.goalMinor!, 'TND')} goal';
+          subtitle = 'At or below your ${formatMoney(budget.goalMinor!, 'TND')} goal';
           icon = Icons.warning_rounded;
+        } else if (overToday) {
+          title = "Stop — today's quota is spent";
+          subtitle = '${formatMoney(budget.overTodayByMinor, 'TND')} over today';
+          icon = Icons.block_rounded;
         } else {
           title = 'Daily budget · ${_shortDate(budget.targetDate!)}';
           subtitle =
-              '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} / day · ${budget.daysRemaining} days left';
+              '${formatMoney(budget.spentTodayMinor, 'TND')}/'
+              '${formatMoney(budget.dailyAmountMinor ?? 0, 'TND')} today · '
+              '${budget.daysRemaining}d left';
           icon = Icons.bolt_rounded;
         }
 
         return InkWell(
           onTap: () => showSavingsGoalSheet(context),
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18),
-            ),
+          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 16, 16),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.18),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 12),
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
                       ),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 15),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.edit_rounded, color: color, size: 18),
+                Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant, size: 18),
               ],
             ),
           ),
@@ -356,18 +296,8 @@ class _DailyBudgetCard extends ConsumerWidget {
 
   String _shortDate(DateTime date) {
     const names = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return '${names[date.month - 1]} ${date.day}';
   }
@@ -415,36 +345,21 @@ class _PillStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(18),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 10),
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelMedium
-                      ?.copyWith(color: color),
-                ),
+                Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color)),
                 Text(
                   formatMoney(amountMinor, 'TND'),
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 15),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -472,41 +387,34 @@ class _TransactionCard extends ConsumerWidget {
       key: ValueKey(item.transaction.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.only(right: 20),
         alignment: Alignment.centerRight,
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(18),
+          color: _expenseColor.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+        child: const Icon(Icons.delete_outline_rounded, color: _expenseColor),
       ),
-      onDismissed: (_) => ref
-          .read(transactionRepositoryProvider)
-          .deleteTransaction(item.transaction.id),
+      onDismissed: (_) =>
+          ref.read(transactionRepositoryProvider).deleteTransaction(item.transaction.id),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: scheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             Container(
-              width: 4,
-              height: 52,
+              width: 3,
+              height: 48,
               margin: const EdgeInsets.only(left: 4),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
-              ),
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
             ),
             Expanded(
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 2,
-                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 leading: CircleAvatar(
                   backgroundColor: color.withValues(alpha: 0.15),
                   foregroundColor: color,
@@ -523,9 +431,7 @@ class _TransactionCard extends ConsumerWidget {
                 trailing: Text(
                   '${isExpense ? '-' : '+'}${formatMoney(item.transaction.amountMinor, item.account.currencyCode)}',
                   style: TextStyle(
-                    color: isExpense
-                        ? const Color(0xFFE1544C)
-                        : const Color(0xFF2E9E5B),
+                    color: isExpense ? _expenseColor : _incomeColor,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -552,26 +458,13 @@ class _EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.receipt_long_rounded,
-              size: 36,
-              color: scheme.onPrimaryContainer,
-            ),
+            decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
+            child: Icon(Icons.receipt_long_rounded, size: 36, color: scheme.onPrimaryContainer),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Nothing logged yet',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-          ),
+          const Text('Nothing logged yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text(
-            'Tap "Expense" below to add your first one',
-            style: TextStyle(color: Colors.grey),
-          ),
+          Text('Tap + below to add your first one', style: TextStyle(color: scheme.onSurfaceVariant)),
         ],
       ),
     );

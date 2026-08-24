@@ -14,10 +14,10 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
       systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarIconBrightness: Brightness.light,
       systemNavigationBarDividerColor: Colors.transparent,
     ),
   );
@@ -25,20 +25,37 @@ void main() {
   runApp(const ProviderScope(child: MySpendingsApp()));
 }
 
+/// Brand colors — a dark ground with a gold accent, deliberately not the
+/// ubiquitous teal-gradient "fintech app" look.
+const _bg = Color(0xFF14161B);
+const _surface = Color(0xFF1B1E25);
+const _surfaceHigh = Color(0xFF23262F);
+const _gold = Color(0xFFE0B152);
+const _ink = Color(0xFFF2F0EA);
+
 class MySpendingsApp extends StatelessWidget {
   const MySpendingsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF0F9D82));
-    final textTheme = GoogleFonts.plusJakartaSansTextTheme();
+    final scheme = ColorScheme.fromSeed(
+      seedColor: _gold,
+      brightness: Brightness.dark,
+      surface: _surface,
+      onSurface: _ink,
+      surfaceContainerHigh: _surfaceHigh,
+      surfaceContainerHighest: _surfaceHigh,
+      primary: _gold,
+      onPrimary: const Color(0xFF241B04),
+    );
+    final textTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme);
 
     return MaterialApp(
       title: 'My Spendings',
       theme: ThemeData(
         colorScheme: scheme,
         useMaterial3: true,
-        scaffoldBackgroundColor: scheme.surface,
+        scaffoldBackgroundColor: _bg,
         textTheme: textTheme,
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
@@ -55,30 +72,24 @@ class MySpendingsApp extends StatelessWidget {
         cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          fillColor: _surfaceHigh,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          elevation: 0,
         ),
+        dividerColor: Colors.white.withValues(alpha: 0.08),
       ),
       home: const HomeShell(),
     );
