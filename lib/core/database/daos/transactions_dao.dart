@@ -90,14 +90,16 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
     return query.watchSingle().map((row) => row.read<int>('total'));
   }
 
-  /// Total expenses booked for a single calendar day, e.g. to check today's
-  /// spending against a daily budget.
+  /// Total *discretionary* expenses booked for a single calendar day — used
+  /// to check today's spending against a daily budget. Fixed expenses (rent,
+  /// subscriptions) are excluded: they're recurring/global costs, not part of
+  /// the day-to-day quota, so paying rent shouldn't read as "blew today's budget".
   Stream<int> watchExpenseTotalForDay(DateTime day) {
     final start = DateTime(day.year, day.month, day.day);
     final end = start.add(const Duration(days: 1));
     final query = customSelect(
       'SELECT COALESCE(SUM(amount_minor), 0) AS total FROM transactions '
-      'WHERE type = ?1 AND date >= ?2 AND date < ?3',
+      'WHERE type = ?1 AND is_fixed = 0 AND date >= ?2 AND date < ?3',
       variables: [
         Variable.withString('expense'),
         Variable.withDateTime(start),

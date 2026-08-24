@@ -27,6 +27,7 @@ class TransactionRepository {
     required String type,
     required DateTime date,
     String? note,
+    bool isFixed = false,
   }) {
     return _dao.insertTransaction(
       TransactionsCompanion.insert(
@@ -36,6 +37,7 @@ class TransactionRepository {
         type: type,
         date: date,
         note: Value(note),
+        isFixed: Value(isFixed),
       ),
     );
   }

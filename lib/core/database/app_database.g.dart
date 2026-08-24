@@ -1101,6 +1101,21 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isFixedMeta = const VerificationMeta(
+    'isFixed',
+  );
+  @override
+  late final GeneratedColumn<bool> isFixed = GeneratedColumn<bool>(
+    'is_fixed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_fixed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1134,6 +1149,7 @@ class $TransactionsTable extends Transactions
     type,
     date,
     note,
+    isFixed,
     createdAt,
     updatedAt,
   ];
@@ -1199,6 +1215,12 @@ class $TransactionsTable extends Transactions
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('is_fixed')) {
+      context.handle(
+        _isFixedMeta,
+        isFixed.isAcceptableOrUnknown(data['is_fixed']!, _isFixedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1248,6 +1270,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      isFixed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_fixed'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1274,6 +1300,11 @@ class TransactionEntry extends DataClass
   final String type;
   final DateTime date;
   final String? note;
+
+  /// True for expenses logged from a saved Fixed Expense (rent, subscriptions,
+  /// bills) — these are recurring/global costs, not discretionary daily
+  /// spending, so they're excluded from the "today vs daily quota" check.
+  final bool isFixed;
   final DateTime createdAt;
   final DateTime updatedAt;
   const TransactionEntry({
@@ -1284,6 +1315,7 @@ class TransactionEntry extends DataClass
     required this.type,
     required this.date,
     this.note,
+    required this.isFixed,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1301,6 +1333,7 @@ class TransactionEntry extends DataClass
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    map['is_fixed'] = Variable<bool>(isFixed);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1317,6 +1350,7 @@ class TransactionEntry extends DataClass
       type: Value(type),
       date: Value(date),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      isFixed: Value(isFixed),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1335,6 +1369,7 @@ class TransactionEntry extends DataClass
       type: serializer.fromJson<String>(json['type']),
       date: serializer.fromJson<DateTime>(json['date']),
       note: serializer.fromJson<String?>(json['note']),
+      isFixed: serializer.fromJson<bool>(json['isFixed']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1350,6 +1385,7 @@ class TransactionEntry extends DataClass
       'type': serializer.toJson<String>(type),
       'date': serializer.toJson<DateTime>(date),
       'note': serializer.toJson<String?>(note),
+      'isFixed': serializer.toJson<bool>(isFixed),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1363,6 +1399,7 @@ class TransactionEntry extends DataClass
     String? type,
     DateTime? date,
     Value<String?> note = const Value.absent(),
+    bool? isFixed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => TransactionEntry(
@@ -1373,6 +1410,7 @@ class TransactionEntry extends DataClass
     type: type ?? this.type,
     date: date ?? this.date,
     note: note.present ? note.value : this.note,
+    isFixed: isFixed ?? this.isFixed,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1389,6 +1427,7 @@ class TransactionEntry extends DataClass
       type: data.type.present ? data.type.value : this.type,
       date: data.date.present ? data.date.value : this.date,
       note: data.note.present ? data.note.value : this.note,
+      isFixed: data.isFixed.present ? data.isFixed.value : this.isFixed,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1404,6 +1443,7 @@ class TransactionEntry extends DataClass
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
+          ..write('isFixed: $isFixed, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1419,6 +1459,7 @@ class TransactionEntry extends DataClass
     type,
     date,
     note,
+    isFixed,
     createdAt,
     updatedAt,
   );
@@ -1433,6 +1474,7 @@ class TransactionEntry extends DataClass
           other.type == this.type &&
           other.date == this.date &&
           other.note == this.note &&
+          other.isFixed == this.isFixed &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1445,6 +1487,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
   final Value<String> type;
   final Value<DateTime> date;
   final Value<String?> note;
+  final Value<bool> isFixed;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const TransactionsCompanion({
@@ -1455,6 +1498,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
     this.type = const Value.absent(),
     this.date = const Value.absent(),
     this.note = const Value.absent(),
+    this.isFixed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1466,6 +1510,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
     required String type,
     required DateTime date,
     this.note = const Value.absent(),
+    this.isFixed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : accountId = Value(accountId),
@@ -1480,6 +1525,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
     Expression<String>? type,
     Expression<DateTime>? date,
     Expression<String>? note,
+    Expression<bool>? isFixed,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1491,6 +1537,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
       if (type != null) 'type': type,
       if (date != null) 'date': date,
       if (note != null) 'note': note,
+      if (isFixed != null) 'is_fixed': isFixed,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1504,6 +1551,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
     Value<String>? type,
     Value<DateTime>? date,
     Value<String?>? note,
+    Value<bool>? isFixed,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -1515,6 +1563,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
       type: type ?? this.type,
       date: date ?? this.date,
       note: note ?? this.note,
+      isFixed: isFixed ?? this.isFixed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1544,6 +1593,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (isFixed.present) {
+      map['is_fixed'] = Variable<bool>(isFixed.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1563,6 +1615,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionEntry> {
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
+          ..write('isFixed: $isFixed, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3244,6 +3297,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required String type,
       required DateTime date,
       Value<String?> note,
+      Value<bool> isFixed,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -3256,6 +3310,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> type,
       Value<DateTime> date,
       Value<String?> note,
+      Value<bool> isFixed,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -3331,6 +3386,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFixed => $composableBuilder(
+    column: $table.isFixed,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3425,6 +3485,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isFixed => $composableBuilder(
+    column: $table.isFixed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3507,6 +3572,9 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFixed =>
+      $composableBuilder(column: $table.isFixed, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3596,6 +3664,7 @@ class $$TransactionsTableTableManager
                 Value<String> type = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<bool> isFixed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion(
@@ -3606,6 +3675,7 @@ class $$TransactionsTableTableManager
                 type: type,
                 date: date,
                 note: note,
+                isFixed: isFixed,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -3618,6 +3688,7 @@ class $$TransactionsTableTableManager
                 required String type,
                 required DateTime date,
                 Value<String?> note = const Value.absent(),
+                Value<bool> isFixed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion.insert(
@@ -3628,6 +3699,7 @@ class $$TransactionsTableTableManager
                 type: type,
                 date: date,
                 note: note,
+                isFixed: isFixed,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

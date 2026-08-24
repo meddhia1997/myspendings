@@ -40,6 +40,7 @@ class FixedExpenseRepository {
       type: 'expense',
       date: DateTime.now(),
       note: template.fixedExpense.name,
+      isFixed: true,
     );
   }
 }

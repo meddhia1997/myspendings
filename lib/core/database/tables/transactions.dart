@@ -13,6 +13,12 @@ class Transactions extends Table {
   TextColumn get type => text()(); // expense, income
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
+
+  /// True for expenses logged from a saved Fixed Expense (rent, subscriptions,
+  /// bills) — these are recurring/global costs, not discretionary daily
+  /// spending, so they're excluded from the "today vs daily quota" check.
+  BoolColumn get isFixed => boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

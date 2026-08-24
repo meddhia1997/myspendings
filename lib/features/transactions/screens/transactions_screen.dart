@@ -420,9 +420,21 @@ class _TransactionCard extends ConsumerWidget {
                   foregroundColor: color,
                   child: Icon(iconForKey(category?.iconKey ?? 'category')),
                 ),
-                title: Text(
-                  category?.name ?? (isExpense ? 'Expense' : 'Income'),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        category?.name ?? (isExpense ? 'Expense' : 'Income'),
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    if (item.transaction.isFixed) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.push_pin_rounded, size: 12, color: scheme.onSurfaceVariant),
+                    ],
+                  ],
                 ),
                 subtitle: Text(
                   '${item.account.name}'
