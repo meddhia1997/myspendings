@@ -58,6 +58,15 @@ dependencies:
   share_plus: ^10.1.4
   file_picker: ^8.1.6
 
+# file_picker 8.3.7's own android/build.gradle hardcodes `compileSdk 34`,
+# which fails AAR metadata checks against flutter_plugin_android_lifecycle
+# (which needs 36+). No root-level Gradle override can fix this reliably —
+# AGP 9.x reads compileSdk too early for afterEvaluate/plugins.withId hooks
+# to win. Vendored a copy with that one line bumped to 36 instead.
+dependency_overrides:
+  file_picker:
+    path: third_party/file_picker
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
