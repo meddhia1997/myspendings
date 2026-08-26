@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +7,8 @@ import '../../../shared/responsive/breakpoints.dart';
 import '../../../shared/widgets/icon_catalog.dart';
 import '../../../shared/widgets/money_format.dart';
 import '../../../shared/widgets/total_balance_banner.dart';
+import '../widgets/category_pie_chart.dart';
+import '../widgets/spending_trend_chart.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -68,61 +69,18 @@ class InsightsScreen extends ConsumerWidget {
                     const SizedBox(height: 20),
                     _SectionCard(
                       title: 'By category',
-                      child: SizedBox(
-                        height: 220,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 5,
-                              child: PieChart(
-                                PieChartData(
-                                  sectionsSpace: 2,
-                                  centerSpaceRadius: 42,
-                                  sections: [
-                                    for (final t in totals)
-                                      PieChartSectionData(
-                                        value: t.totalMinor.toDouble(),
-                                        color: Color(
-                                          t.category?.colorValue ?? 0xFF757575,
-                                        ),
-                                        radius: 46,
-                                        showTitle: false,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 6,
-                              child: ListView(
-                                padding: EdgeInsets.zero,
-                                children: [
-                                  for (final t in totals.take(6))
-                                    _LegendRow(
-                                      total: t,
-                                      grandTotal: grandTotal,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: CategoryPieChart(totals: totals, grandTotal: grandTotal),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
                       title: 'Daily spending',
-                      child: SizedBox(
-                        height: 160,
-                        child: dailyAsync.when(
-                          data: (daily) => _DailyTrendChart(
-                            daily: daily,
-                            color: scheme.primary,
-                          ),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
-                          error: (_, _) => const SizedBox.shrink(),
+                      child: dailyAsync.when(
+                        data: (daily) => SpendingTrendChart(daily: daily),
+                        loading: () => const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
                         ),
+                        error: (_, _) => const SizedBox.shrink(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -184,97 +142,6 @@ class _SectionCard extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
           child,
-        ],
-      ),
-    );
-  }
-}
-
-class _LegendRow extends StatelessWidget {
-  const _LegendRow({required this.total, required this.grandTotal});
-
-  final CategoryTotal total;
-  final int grandTotal;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Color(total.category?.colorValue ?? 0xFF757575);
-    final percent = grandTotal == 0 ? 0 : (total.totalMinor / grandTotal * 100);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              total.category?.name ?? 'Uncategorized',
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-          Text(
-            '${percent.toStringAsFixed(0)}%',
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DailyTrendChart extends StatelessWidget {
-  const _DailyTrendChart({required this.daily, required this.color});
-
-  final List<DailyTotal> daily;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxValue = daily.fold<int>(
-      0,
-      (m, d) => d.expenseMinor > m ? d.expenseMinor : m,
-    );
-    if (maxValue == 0) {
-      return const Center(child: Text('No expenses logged yet this month.'));
-    }
-
-    return LineChart(
-      LineChartData(
-        gridData: const FlGridData(show: false),
-        titlesData: const FlTitlesData(
-          show: true,
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        minY: 0,
-        lineTouchData: const LineTouchData(enabled: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              for (final d in daily)
-                FlSpot(d.day.toDouble(), d.expenseMinor / 100),
-            ],
-            isCurved: true,
-            color: color,
-            barWidth: 2.5,
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              color: color.withValues(alpha: 0.12),
-            ),
-          ),
         ],
       ),
     );
