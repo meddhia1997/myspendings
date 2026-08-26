@@ -58,14 +58,6 @@ dependencies:
   share_plus: ^10.1.4
   file_picker: ^8.1.6
 
-# file_picker pulls in flutter_plugin_android_lifecycle, whose recent versions
-# (2.0.32+) demand a moving-target compileSdk (35, then 36...) ahead of what
-# our configured toolchain provides — an open upstream issue. Pin it to the
-# last version before that churn started; our compileSdk 36 comfortably
-# satisfies its (much lower) actual requirement.
-dependency_overrides:
-  flutter_plugin_android_lifecycle: 2.0.28
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
