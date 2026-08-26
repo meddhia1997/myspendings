@@ -22,11 +22,16 @@ subprojects {
 // Some plugins (e.g. file_picker's flutter_plugin_android_lifecycle dependency)
 // require compileSdk 36+, but their own Gradle module still resolves
 // flutter.compileSdkVersion to Flutter's older bundled default. Force every
-// Android subproject to compile against 36 regardless of what it asked for itself.
+// Android library subproject to compile against 36 regardless of what it asked
+// for itself. Hooked via plugins.withId (fires at plugin-apply time) rather than
+// afterEvaluate, since evaluationDependsOn(":app") above means some subprojects
+// are already evaluated by the time a plain `subprojects { afterEvaluate {} }`
+// would run, which Gradle rejects.
 subprojects {
-    afterEvaluate {
-        extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
-            ?.compileSdkVersion(36)
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension> {
+            compileSdk = 36
+        }
     }
 }
 
